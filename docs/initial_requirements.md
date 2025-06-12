@@ -18,8 +18,10 @@
 ## 4. 利用技術
 * フロントエンド：Next.js
 * バックエンド：Ruby on Rails
-* データベース：PostgreSQL（Neon）
-* デプロイ：Vercel
+* データベース：PostgreSQL
+* デプロイ：Google Cloud
+    * アプリ：Cloud Run
+    * DB：Cloud SQL
 
 
 ## 5. 機能要件
