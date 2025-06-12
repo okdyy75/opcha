@@ -1,0 +1,52 @@
+substitutions:
+  _REGION: asia-northeast1
+  _PROJECT_ID: your-gcp-project-id
+  _REPO: opcha-repo
+  _BACKEND_SERVICE: opcha-backend
+  _FRONTEND_SERVICE: opcha-frontend
+  _CLOUDSQL_INSTANCE: your-cloudsql-instance-connection-name
+steps:
+  # backend build & push
+  - name: 'gcr.io/cloud-builders/docker'
+    args: [ 'build', '-t', '${_REGION}-docker.pkg.dev/${_PROJECT_ID}/${_REPO}/backend:latest', './backend' ]
+  - name: 'gcr.io/cloud-builders/docker'
+    args: [ 'push', '${_REGION}-docker.pkg.dev/${_PROJECT_ID}/${_REPO}/backend:latest' ]
+
+  # frontend build & push
+  - name: 'gcr.io/cloud-builders/docker'
+    args: [ 'build', '-t', '${_REGION}-docker.pkg.dev/${_PROJECT_ID}/${_REPO}/frontend:latest', './frontend' ]
+  - name: 'gcr.io/cloud-builders/docker'
+    args: [ 'push', '${_REGION}-docker.pkg.dev/${_PROJECT_ID}/${_REPO}/frontend:latest' ]
+
+  # deploy backend to Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      - run
+      - deploy
+      - ${_BACKEND_SERVICE}
+      - --image=${_REGION}-docker.pkg.dev/${_PROJECT_ID}/${_REPO}/backend:latest
+      - --region=${_REGION}
+      - --platform=managed
+      - --allow-unauthenticated
+      - --add-cloudsql-instances=${_CLOUDSQL_INSTANCE}
+      - --set-secrets=RAILS_MASTER_KEY=projects/${_PROJECT_ID}/secrets/RAILS_MASTER_KEY:latest
+      - --set-env-vars=DATABASE_URL=postgresql://<USER>:<PASSWORD>@/<DBNAME>?host=/cloudsql/${_CLOUDSQL_INSTANCE}
+
+  # deploy frontend to Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      - run
+      - deploy
+      - ${_FRONTEND_SERVICE}
+      - --image=${_REGION}-docker.pkg.dev/${_PROJECT_ID}/${_REPO}/frontend:latest
+      - --region=${_REGION}
+      - --platform=managed
+      - --allow-unauthenticated
+      - --set-env-vars=NEXT_PUBLIC_API_URL=https://<backend-service-url>
+
+# 備考:
+# - 必要に応じてsubstitutionsの値を変更してください
+# - Secret ManagerやCloud SQLの設定はgcloudコマンドの引数で指定しています
+# - Artifact Registryのリポジトリ（${_REPO}）は事前に作成しておいてください 
