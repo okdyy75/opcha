@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  # Rails API Backend for Production
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    environment:
+      RAILS_ENV: production
+      DATABASE_URL: postgresql://${DB_USER}:${DB_PASSWORD}@/${DB_NAME}?host=/cloudsql/${GOOGLE_CLOUD_SQL_CONNECTION_NAME}
+      REDIS_URL: ${REDIS_URL}
+      PUSHER_APP_ID: ${PUSHER_APP_ID}
+      PUSHER_KEY: ${PUSHER_KEY}
+      PUSHER_SECRET: ${PUSHER_SECRET}
+      PUSHER_CLUSTER: ${PUSHER_CLUSTER}
+    ports:
+      - "80:80"
+    volumes:
+      - /cloudsql:/cloudsql
+
+  # Next.js Frontend for Production
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    environment:
+      NODE_ENV: production
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+      NEXT_PUBLIC_PUSHER_KEY: ${PUSHER_KEY}
+      NEXT_PUBLIC_PUSHER_CLUSTER: ${PUSHER_CLUSTER}
+    ports:
+      - "3000:3000"
