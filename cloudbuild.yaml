@@ -69,7 +69,7 @@ steps:
     waitFor: [push-frontend]
 
 substitutions:
-  _REGION: asia-northeast1
+  _REGION: asia-east1 # 台湾リージョン
   _CLOUDSQL_INSTANCE: ${PROJECT_ID}:${_REGION}:opcha-db
   _DATABASE_URL: postgresql://${_DB_USER}:${_DB_PASSWORD}@/${_DB_NAME}?host=/cloudsql/${_CLOUDSQL_INSTANCE}
   _RAILS_MASTER_KEY: ${_RAILS_MASTER_KEY}

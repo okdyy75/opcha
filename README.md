@@ -9,6 +9,7 @@
 - **データベース**: PostgreSQL
 - **リアルタイム通信**: Pusher / ActionCable
 - **デプロイ**: Google Cloud (Cloud Run + Cloud SQL)
+  - 最安のDBインスタンスを使用するために台湾リージョン（asia-east1）で構築
 
 ## 開発環境構築
 
@@ -87,9 +88,9 @@ gcloud auth configure-docker
 2. Cloud SQL インスタンスの作成
 ```bash
 gcloud sql instances create opcha-db \\
-  --database-version=POSTGRES_15 \\
+  --database-version=POSTGRES_17 \\
   --tier=db-f1-micro \\
-  --region=asia-northeast1
+  --region=asia-east1
 ```
 
 3. データベースの作成
