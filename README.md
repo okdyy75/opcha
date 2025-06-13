@@ -45,7 +45,6 @@ docker-compose exec backend rails db:create db:migrate db:seed
 - **フロントエンド**: http://localhost:3000
 - **バックエンドAPI**: http://localhost:3001
 - **PostgreSQL**: localhost:5432
-- **Redis**: localhost:6379
 
 ### よく使うコマンド
 

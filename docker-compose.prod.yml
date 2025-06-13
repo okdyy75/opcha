@@ -9,7 +9,6 @@ services:
     environment:
       RAILS_ENV: production
       DATABASE_URL: postgresql://${DB_USER}:${DB_PASSWORD}@/${DB_NAME}?host=/cloudsql/${GOOGLE_CLOUD_SQL_CONNECTION_NAME}
-      REDIS_URL: ${REDIS_URL}
       PUSHER_APP_ID: ${PUSHER_APP_ID}
       PUSHER_KEY: ${PUSHER_KEY}
       PUSHER_SECRET: ${PUSHER_SECRET}
