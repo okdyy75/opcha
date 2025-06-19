@@ -87,9 +87,12 @@ gcloud auth configure-docker
 
 2. Cloud SQL インスタンスの作成
 ```bash
-gcloud sql instances create opcha-db \\
-  --database-version=POSTGRES_17 \\
-  --tier=db-f1-micro \\
+gcloud sql instances create opcha-db \
+  --edition=enterprise \
+  --database-version=POSTGRES_17 \
+  --storage-type=HDD  \
+  --storage-size=10 \
+  --tier=db-f1-micro \
   --region=asia-east1
 ```
 
@@ -98,7 +101,23 @@ gcloud sql instances create opcha-db \\
 gcloud sql databases create opcha_production --instance=opcha-db
 ```
 
-4. Cloud Build を使用してデプロイ
+4. postgresユーザーのパスワード設定
+```bash
+gcloud sql users set-password postgres \
+  --instance=opcha-db \
+  --password=xxxxx
+```
+
+5. データベース操作用ユーザー作成
+```sql
+-- ユーザー作成
+CREATE USER <user> WITH PASSWORD <password>;
+
+-- データベース作成権限
+ALTER USER <user> CREATEDB;
+```
+
+6. Cloud Build を使用してデプロイ
 ```bash
 gcloud builds submit --config cloudbuild.yaml
 ```
@@ -107,9 +126,97 @@ gcloud builds submit --config cloudbuild.yaml
 
 以下の環境変数をCloud Runサービスに設定してください：
 
-- `DATABASE_URL`: Cloud SQLの接続URL
+- Cloud SQLの接続情報
+  - `DB_NAME`: データベース名
+  - `DB_USERNAME`: DBユーザー名
+  - `DB_PASSWORD`: DBパスワード
 - `RAILS_MASTER_KEY`: Rails のマスターキー
 - `PUSHER_*`: Pusher設定（リアルタイム通信用）
+
+```bash
+# secret作成
+echo -n 'xxxxx' | gcloud secrets create RAILS_MASTER_KEY --data-file=-
+
+# secret更新
+echo -n 'xxxxx' | gcloud secrets versions add RAILS_MASTER_KEY --data-file=-
+```
+
+### ジョブの実行
+
+```bash
+# ジョブの作成
+gcloud run jobs create opcha-job \
+    --image gcr.io/<プロジェクトID>/opcha-backend:latest \
+    --region=asia-east1 \
+    --set-cloudsql-instances=<CloudSQLインスタンス> \
+    --set-env-vars=RAILS_ENV=production \
+    --set-env-vars=DB_HOST=/cloudsql/<CloudSQLインスタンス> \
+    --set-env-vars=DB_PORT=5432 \
+    --set-secrets=RAILS_MASTER_KEY=RAILS_MASTER_KEY:latest \
+    --set-secrets=DB_NAME=DB_NAME:latest \
+    --set-secrets=DB_USERNAME=DB_USERNAME:latest \
+    --set-secrets=DB_PASSWORD=DB_PASSWORD:latest
+
+# ジョブの実行
+gcloud run jobs execute opcha-job \
+    --region=asia-east1 \
+    --args=bin/rails,db:migrate
+
+# ジョブの削除
+gcloud run jobs delete opcha-job  \
+    --region=asia-east1 \
+    --quiet
+```
+
+
+## 開発Tips
+
+```
+# モデル作成
+bin/rails g model MovieGenre name:string
+
+# コントローラー作成
+bin/rails g scaffold_controller api/MovieGenre --api
+```
+
+### Cloud SQLのDB接続
+#### CLI経由
+
+```
+gcloud sql connect opcha-db --user=xxxxx --database=opcha_production 
+```
+
+#### GUI経由
+
+下記ドキュメントを元に
+- サービスアカウントの作成（opcha-local-key.jsonの取得）
+- Cloud SQL Auth Proxyの設定をする
+
+サービス アカウントを設定する - ローカル コンピュータから Cloud SQL for PostgreSQL に接続する
+https://cloud.google.com/sql/docs/postgres/connect-instance-local-computer?hl=ja#set_up_a_service_account
+
+Mac M1 - Cloud SQL Auth Proxy を使用して接続する
+https://cloud.google.com/sql/docs/mysql/connect-auth-proxy?hl=ja#mac-m1
+
+Cloud SQLのデータベースにローカルから接続する方法
+https://qiita.com/ryu-yama/items/f635a7608469bf019de7
+
+
+1. プロキシを起動
+```
+./.google_cloud/cloud-sql-proxy \
+  --credentials-file ./.google_cloud/opcha-local-key.json \
+  --port 1234 \
+  <CloudSQLインスタンス>
+```
+
+2. クライアント側は下記設定で接続
+```
+Host：localhost
+Port：1234
+ユーザー名：xxxxx
+パスワード：xxxxx
+```
 
 ## プロジェクト構成
 

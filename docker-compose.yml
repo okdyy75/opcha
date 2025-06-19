@@ -24,8 +24,12 @@ services:
       target: build
     environment:
       RAILS_ENV: development
-      DATABASE_URL: postgresql://postgres:postgres@db:5432/opcha_development
       RAILS_MASTER_KEY: cee83926d87d4995d2de9e8326c13737
+      DB_NAME: opcha_development
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USERNAME: postgres
+      DB_PASSWORD: postgres
     volumes:
       - ./backend:/rails
       - bundle_cache:/usr/local/bundle
@@ -44,7 +48,7 @@ services:
       target: builder
     environment:
       NODE_ENV: development
-      NEXT_PUBLIC_API_URL: http://localhost:3001
+      NEXT_PUBLIC_API_URL: http://backend:80
     volumes:
       - ./frontend:/app
       - node_modules:/app/node_modules
