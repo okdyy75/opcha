@@ -179,7 +179,7 @@ bin/rails g model MovieGenre name:string
 bin/rails g scaffold_controller api/MovieGenre --api
 ```
 
-### Cloud SQLのDB接続
+### ローカルPCからCloud SQLへ接続
 #### CLI経由
 
 ```
@@ -192,13 +192,13 @@ gcloud sql connect opcha-db --user=xxxxx --database=opcha_production
 - サービスアカウントの作成（opcha-local-key.jsonの取得）
 - Cloud SQL Auth Proxyの設定をする
 
-サービス アカウントを設定する - ローカル コンピュータから Cloud SQL for PostgreSQL に接続する
+サービス アカウントを設定する - ローカル コンピュータから Cloud SQL for PostgreSQL に接続する  
 https://cloud.google.com/sql/docs/postgres/connect-instance-local-computer?hl=ja#set_up_a_service_account
 
-Mac M1 - Cloud SQL Auth Proxy を使用して接続する
+Mac M1 - Cloud SQL Auth Proxy を使用して接続する  
 https://cloud.google.com/sql/docs/mysql/connect-auth-proxy?hl=ja#mac-m1
 
-Cloud SQLのデータベースにローカルから接続する方法
+Cloud SQLのデータベースにローカルから接続する方法  
 https://qiita.com/ryu-yama/items/f635a7608469bf019de7
 
 
