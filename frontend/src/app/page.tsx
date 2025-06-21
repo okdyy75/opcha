@@ -2,6 +2,10 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { useNickname } from '../hooks/useNickname';
+import NicknameModal from '../components/NicknameModal';
+import { useToast } from '../hooks/useToast';
+import Toast from '../components/Toast';
 
 interface ChatRoom {
   id: string;
@@ -38,6 +42,9 @@ export default function Home() {
 
   const [isCreating, setIsCreating] = useState(false);
   const [newRoomName, setNewRoomName] = useState('');
+  const { nickname, isLoading, updateNickname } = useNickname();
+  const [isNicknameModalOpen, setIsNicknameModalOpen] = useState(false);
+  const { toasts, success, removeToast } = useToast();
 
   const handleCreateRoom = () => {
     if (newRoomName.trim()) {
@@ -55,12 +62,23 @@ export default function Home() {
       <header className="bg-[var(--line-green)] text-white p-4 shadow-md">
         <div className="max-w-md mx-auto flex items-center justify-between">
           <h1 className="text-xl font-bold">opcha</h1>
-          <button
-            onClick={() => setIsCreating(true)}
-            className="bg-white/20 hover:bg-white/30 px-4 py-2 rounded-full text-sm font-medium transition-colors"
-          >
-            ルーム作成
-          </button>
+          <div className="flex items-center gap-2">
+            {!isLoading && (
+              <button
+                onClick={() => setIsNicknameModalOpen(true)}
+                className="bg-white/20 hover:bg-white/30 px-3 py-2 rounded-full text-xs font-medium transition-colors"
+                title="ニックネーム変更"
+              >
+                {nickname}
+              </button>
+            )}
+            <button
+              onClick={() => setIsCreating(true)}
+              className="bg-white/20 hover:bg-white/30 px-4 py-2 rounded-full text-sm font-medium transition-colors"
+            >
+              ルーム作成
+            </button>
+          </div>
         </div>
       </header>
 
@@ -162,6 +180,31 @@ export default function Home() {
           </div>
         </div>
       )}
+
+      {/* Toast通知 */}
+      {toasts.map((toast) => (
+        <Toast
+          key={toast.id}
+          message={toast.message}
+          type={toast.type}
+          duration={toast.duration}
+          onClose={() => removeToast(toast.id)}
+        />
+      ))}
+
+      {/* ニックネーム設定モーダル */}
+      <NicknameModal
+        isOpen={isNicknameModalOpen}
+        currentNickname={nickname}
+        onClose={() => setIsNicknameModalOpen(false)}
+        onUpdate={(newNickname) => {
+          const result = updateNickname(newNickname);
+          if (result) {
+            success('ニックネームを更新しました');
+          }
+          return result;
+        }}
+      />
     </div>
   );
 }

@@ -5,13 +5,17 @@ import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import Toast from '../../../components/Toast';
 import { useToast } from '../../../hooks/useToast';
+import { useNickname } from '../../../hooks/useNickname';
+import { useSessionId } from '../../../hooks/useSessionId';
+import NicknameModal from '../../../components/NicknameModal';
 
 interface Message {
   id: string;
   text: string;
   timestamp: string;
   userId: string;
-  userName: string;
+  userName: string; // 変更不可能なセッションID（#A1B2のような形式）
+  userNickname: string; // 変更可能なニックネーム
   isOwn: boolean;
 }
 
@@ -26,7 +30,8 @@ export default function ChatRoom() {
       text: 'こんにちは！このルームにようこそ！',
       timestamp: '14:30',
       userId: 'user1',
-      userName: 'abc123',
+      userName: '#A1B2',
+      userNickname: 'かわいいねこ123',
       isOwn: false
     },
     {
@@ -34,7 +39,8 @@ export default function ChatRoom() {
       text: 'よろしくお願いします！',
       timestamp: '14:32',
       userId: 'user2',
-      userName: 'xyz789',
+      userName: '#C3D4',
+      userNickname: 'げんきないぬ456',
       isOwn: true
     },
     {
@@ -42,7 +48,8 @@ export default function ChatRoom() {
       text: '今日はいい天気ですね',
       timestamp: '14:35',
       userId: 'user1',
-      userName: 'abc123',
+      userName: '#A1B2',
+      userNickname: 'かわいいねこ123',
       isOwn: false
     }
   ]);
@@ -53,6 +60,9 @@ export default function ChatRoom() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { toasts, success, removeToast } = useToast();
+  const { nickname, isLoading: nicknameLoading, updateNickname } = useNickname();
+  const { sessionId, isLoading: sessionLoading } = useSessionId();
+  const [isNicknameModalOpen, setIsNicknameModalOpen] = useState(false);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -75,7 +85,8 @@ export default function ChatRoom() {
         text: newMessage.trim(),
         timestamp,
         userId: 'currentUser',
-        userName: 'def456',
+        userName: sessionId,
+        userNickname: nickname,
         isOwn: true
       };
 
@@ -112,6 +123,17 @@ export default function ChatRoom() {
     }
   };
 
+  if (nicknameLoading || sessionLoading) {
+    return (
+      <div className="min-h-screen bg-[var(--line-gray)] flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--line-green)] mx-auto mb-2"></div>
+          <p className="text-[var(--line-dark-gray)]">読み込み中...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[var(--line-gray)] flex flex-col">
       {/* ヘッダー */}
@@ -135,6 +157,15 @@ export default function ChatRoom() {
             </p>
           </div>
           <button
+            onClick={() => setIsNicknameModalOpen(true)}
+            className="p-2 hover:bg-[var(--line-gray)] rounded-full transition-colors"
+            title={`ニックネーム変更 - ${nickname} ${sessionId}`}
+          >
+            <svg className="w-5 h-5 text-[var(--line-dark-gray)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            </svg>
+          </button>
+          <button
             onClick={copyRoomUrl}
             className="p-2 hover:bg-[var(--line-gray)] rounded-full transition-colors"
             title="URLをコピー"
@@ -157,7 +188,8 @@ export default function ChatRoom() {
               <div className={`max-w-[75%] ${message.isOwn ? 'order-2' : 'order-1'}`}>
                 {!message.isOwn && (
                   <div className="text-xs text-[var(--line-dark-gray)] mb-1 px-1">
-                    {message.userName}
+                    <span className="font-medium">{message.userNickname}</span>
+                    <span className="ml-1 opacity-70">{message.userName}</span>
                   </div>
                 )}
                 <div
@@ -174,7 +206,13 @@ export default function ChatRoom() {
                 <div className={`text-xs text-[var(--line-dark-gray)] mt-1 px-1 ${
                   message.isOwn ? 'text-right' : 'text-left'
                 }`}>
-                  {message.timestamp}
+                  {message.isOwn && (
+                    <div className="mb-0.5">
+                      <span className="font-medium">{message.userNickname}</span>
+                      <span className="ml-1 opacity-70">{message.userName}</span>
+                    </div>
+                  )}
+                  <div>{message.timestamp}</div>
                 </div>
               </div>
             </div>
@@ -184,29 +222,52 @@ export default function ChatRoom() {
       </div>
 
       {/* メッセージ入力エリア */}
-      <div className="bg-white border-t border-[var(--border-color)] p-4">
-        <div className="max-w-md mx-auto flex items-end gap-3">
-          <div className="flex-1 relative">
-            <textarea
-              ref={textareaRef}
-              value={newMessage}
-              onChange={(e) => setNewMessage(e.target.value)}
-              onKeyPress={handleKeyPress}
-              placeholder="メッセージを入力..."
-              className="w-full p-3 pr-12 border border-[var(--border-color)] rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-[var(--line-green)] focus:border-transparent text-sm"
-              rows={1}
-              style={{ minHeight: '44px', maxHeight: '120px' }}
-            />
+      <div className="bg-white border-t border-[var(--border-color)]">
+        {/* 自分の情報表示 */}
+        <div className="max-w-md mx-auto px-4 py-2 border-b border-[var(--line-light-gray)]">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-[var(--line-dark-gray)]">あなた:</span>
+              <span className="text-sm font-medium text-[var(--foreground)]">{nickname}</span>
+              <span className="text-xs text-[var(--line-dark-gray)] opacity-70">{sessionId}</span>
+            </div>
+            <button
+              onClick={() => setIsNicknameModalOpen(true)}
+              className="p-1.5 hover:bg-[var(--line-gray)] rounded-full transition-colors"
+              title="ニックネーム変更"
+            >
+              <svg className="w-4 h-4 text-[var(--line-dark-gray)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+              </svg>
+            </button>
           </div>
-          <button
-            onClick={handleSendMessage}
-            disabled={!newMessage.trim()}
-            className="bg-[var(--line-green)] hover:bg-[var(--line-green-hover)] disabled:bg-[var(--line-dark-gray)] text-white p-3 rounded-full transition-colors disabled:cursor-not-allowed"
-          >
-            <svg className="w-5 h-5 rotate-45" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-            </svg>
-          </button>
+        </div>
+        
+        {/* メッセージ入力フィールド */}
+        <div className="p-4">
+          <div className="max-w-md mx-auto flex items-end gap-3">
+            <div className="flex-1 relative">
+              <textarea
+                ref={textareaRef}
+                value={newMessage}
+                onChange={(e) => setNewMessage(e.target.value)}
+                onKeyPress={handleKeyPress}
+                placeholder="メッセージを入力..."
+                className="w-full p-3 pr-12 border border-[var(--border-color)] rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-[var(--line-green)] focus:border-transparent text-sm"
+                rows={1}
+                style={{ minHeight: '44px', maxHeight: '120px' }}
+              />
+            </div>
+            <button
+              onClick={handleSendMessage}
+              disabled={!newMessage.trim()}
+              className="bg-[var(--line-green)] hover:bg-[var(--line-green-hover)] disabled:bg-[var(--line-dark-gray)] text-white p-3 rounded-full transition-colors disabled:cursor-not-allowed"
+            >
+              <svg className="w-5 h-5 rotate-45" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+              </svg>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -220,6 +281,20 @@ export default function ChatRoom() {
           onClose={() => removeToast(toast.id)}
         />
       ))}
+
+      {/* ニックネーム設定モーダル */}
+      <NicknameModal
+        isOpen={isNicknameModalOpen}
+        currentNickname={nickname}
+        onClose={() => setIsNicknameModalOpen(false)}
+        onUpdate={(newNickname) => {
+          const result = updateNickname(newNickname);
+          if (result) {
+            success('ニックネームを更新しました');
+          }
+          return result;
+        }}
+      />
     </div>
   );
 } 
