@@ -3,6 +3,16 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --line-green: #06c755;
+  --line-green-hover: #05b04a;
+  --line-gray: #f5f5f5;
+  --line-light-gray: #e5e5e5;
+  --line-dark-gray: #888888;
+  --message-bubble-self: #06c755;
+  --message-bubble-other: #ffffff;
+  --message-text-self: #ffffff;
+  --message-text-other: #333333;
+  --border-color: #e5e5e5;
 }
 
 @theme inline {
@@ -10,17 +20,51 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --color-line-green: var(--line-green);
+  --color-line-green-hover: var(--line-green-hover);
+  --color-line-gray: var(--line-gray);
+  --color-line-light-gray: var(--line-light-gray);
+  --color-line-dark-gray: var(--line-dark-gray);
+  --color-message-bubble-self: var(--message-bubble-self);
+  --color-message-bubble-other: var(--message-bubble-other);
+  --color-message-text-self: var(--message-text-self);
+  --color-message-text-other: var(--message-text-other);
+  --color-border: var(--border-color);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
+    --background: #1a1a1a;
     --foreground: #ededed;
+    --line-gray: #2a2a2a;
+    --line-light-gray: #3a3a3a;
+    --line-dark-gray: #888888;
+    --message-bubble-other: #2a2a2a;
+    --message-text-other: #ededed;
+    --border-color: #3a3a3a;
   }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+/* LINE風のスクロールバー */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--line-gray);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--line-dark-gray);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #666666;
 }
