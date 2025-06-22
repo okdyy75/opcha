@@ -50,9 +50,9 @@ export default function RoomsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[var(--line-gray)]">
+    <div className="min-h-screen bg-[var(--bg-gray)]">
       {/* ヘッダー */}
-      <header className="bg-[var(--line-green)] text-white p-2 shadow-md">
+      <header className="bg-[var(--primary-color)] text-white p-2 shadow-md">
         <div className="max-w-md mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Link 
@@ -71,22 +71,22 @@ export default function RoomsPage() {
       {/* メインコンテンツ */}
       <main className="max-w-md mx-auto bg-white min-h-screen">
         {/* 説明セクション */}
-        <div className="p-4 border-b border-[var(--border-color)]">
+        <div className="p-4 border-b border-[var(--border-light-gray)]">
           <h2 className="text-lg font-semibold text-[var(--foreground)] mb-2">
             オープンチャット
           </h2>
-          <p className="text-sm text-[var(--line-dark-gray)]">
+          <p className="text-sm text-[var(--text-gray)]">
             誰でも気軽に参加できるチャットルームです。お気に入りのルームを見つけて会話を楽しみましょう。
           </p>
         </div>
 
         {/* チャットルーム一覧 */}
-        <div className="divide-y divide-[var(--border-color)]">
+        <div className="divide-y divide-[var(--border-light-gray)]">
           {rooms.map((room) => (
             <Link
               key={room.id}
               href={`/rooms/${room.id}`}
-              className="block p-4 hover:bg-[var(--line-gray)] transition-colors"
+              className="block p-4 hover:bg-[var(--bg-gray)] transition-colors"
             >
               <div className="flex items-center justify-between">
                 <div className="flex-1 min-w-0">
@@ -94,7 +94,7 @@ export default function RoomsPage() {
                     <h3 className="font-medium text-[var(--foreground)] truncate">
                       {room.name}
                     </h3>
-                    <span className="text-xs text-[var(--line-dark-gray)] flex items-center gap-1">
+                    <span className="text-xs text-[var(--text-gray)] flex items-center gap-1">
                       <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 16 16">
                         <path d="M3 14s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1H3zm5-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/>
                       </svg>
@@ -102,12 +102,12 @@ export default function RoomsPage() {
                     </span>
                   </div>
                   {room.lastMessage && (
-                    <p className="text-sm text-[var(--line-dark-gray)] truncate">
+                    <p className="text-sm text-[var(--text-gray)] truncate">
                       {room.lastMessage}
                     </p>
                   )}
                 </div>
-                <div className="text-xs text-[var(--line-dark-gray)] ml-2">
+                <div className="text-xs text-[var(--text-gray)] ml-2">
                   {room.lastActivity}
                 </div>
               </div>
@@ -119,12 +119,12 @@ export default function RoomsPage() {
         {rooms.length === 0 && (
           <div className="p-8 text-center">
             <div className="text-4xl mb-4">💬</div>
-            <p className="text-[var(--line-dark-gray)] mb-4">
+            <p className="text-[var(--text-gray)] mb-4">
               まだチャットルームがありません
             </p>
             <button
               onClick={() => setIsCreating(true)}
-              className="bg-[var(--line-green)] hover:bg-[var(--line-green-hover)] text-white px-6 py-3 rounded-full font-medium transition-colors"
+              className="bg-[var(--primary-color)] hover:bg-[var(--primary-color-hover)] text-white px-6 py-3 rounded-full font-medium transition-colors"
             >
               最初のルームを作成
             </button>
@@ -142,7 +142,7 @@ export default function RoomsPage() {
               value={newRoomName}
               onChange={(e) => setNewRoomName(e.target.value)}
               placeholder="ルーム名を入力"
-              className="w-full p-3 border border-[var(--border-color)] rounded-lg mb-4 focus:outline-none focus:ring-2 focus:ring-[var(--line-green)] focus:border-transparent"
+              className="w-full p-3 border border-[var(--border-light-gray)] rounded-lg mb-4 focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)] focus:border-transparent"
               autoFocus
             />
             <div className="flex gap-2">
@@ -151,14 +151,14 @@ export default function RoomsPage() {
                   setIsCreating(false);
                   setNewRoomName('');
                 }}
-                className="flex-1 py-3 border border-[var(--border-color)] rounded-lg font-medium hover:bg-[var(--line-gray)] transition-colors"
+                className="flex-1 py-3 border border-[var(--border-light-gray)] rounded-lg font-medium hover:bg-[var(--bg-gray)] transition-colors"
               >
                 キャンセル
               </button>
               <button
                 onClick={handleCreateRoom}
                 disabled={!newRoomName.trim()}
-                className="flex-1 py-3 bg-[var(--line-green)] hover:bg-[var(--line-green-hover)] text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 py-3 bg-[var(--primary-color)] hover:bg-[var(--primary-color-hover)] text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 作成
               </button>

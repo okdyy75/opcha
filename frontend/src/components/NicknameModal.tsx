@@ -57,10 +57,11 @@ export default function NicknameModal({
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold">ニックネーム設定</h3>
           <button
+            type="button"
             onClick={onClose}
-            className="p-1 hover:bg-[var(--line-gray)] rounded-full transition-colors"
+            className="p-1 hover:bg-[var(--bg-gray)] rounded-full transition-colors"
           >
-            <svg className="w-5 h-5 text-[var(--line-dark-gray)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-5 h-5 text-[var(--text-gray)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
@@ -79,12 +80,12 @@ export default function NicknameModal({
                 setError('');
               }}
               placeholder="ニックネームを入力"
-              className="flex-1 p-3 border border-[var(--border-color)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--line-green)] focus:border-transparent text-sm"
+              className="flex-1 p-3 border border-[var(--border-color)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)] focus:border-transparent text-sm"
               maxLength={20}
             />
             <button
               onClick={handleRegenerate}
-              className="px-3 py-2 border border-[var(--border-color)] rounded-lg hover:bg-[var(--line-gray)] transition-colors text-sm"
+              className="px-3 py-2 border border-[var(--border-color)] rounded-lg hover:bg-[var(--bg-gray)] transition-colors text-sm"
               title="ランダム生成"
             >
               🎲
@@ -93,21 +94,23 @@ export default function NicknameModal({
           {error && (
             <p className="text-red-500 text-xs mt-1">{error}</p>
           )}
-          <p className="text-xs text-[var(--line-dark-gray)] mt-1">
+          <p className="text-xs text-[var(--text-gray)] mt-1">
             20文字以内で入力してください
           </p>
         </div>
 
         <div className="flex gap-2 mt-6">
           <button
+            type="button"
             onClick={onClose}
-            className="flex-1 py-3 border border-[var(--border-color)] rounded-lg font-medium hover:bg-[var(--line-gray)] transition-colors"
+            className="flex-1 py-3 border border-[var(--border-color)] rounded-lg font-medium hover:bg-[var(--bg-gray)] transition-colors"
           >
             キャンセル
           </button>
           <button
+            type="submit"
             onClick={handleSubmit}
-            className="flex-1 py-3 bg-[var(--line-green)] hover:bg-[var(--line-green-hover)] text-white rounded-lg font-medium transition-colors"
+            className="flex-1 py-3 bg-[var(--primary-color)] hover:bg-[var(--primary-color-hover)] text-white rounded-lg font-medium transition-colors"
           >
             設定
           </button>

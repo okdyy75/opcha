@@ -21,7 +21,7 @@ export default function Toast({ message, type = 'info', duration = 3000, onClose
     return () => clearTimeout(timer);
   }, [duration, onClose]);
 
-  const getTypeStyles = () => {
+  const getToastStyles = (type: 'success' | 'error' | 'info') => {
     switch (type) {
       case 'success':
         return 'bg-green-500 text-white';
@@ -36,7 +36,7 @@ export default function Toast({ message, type = 'info', duration = 3000, onClose
     <div
       className={`fixed top-4 left-1/2 transform -translate-x-1/2 z-50 px-4 py-3 rounded-lg shadow-lg transition-all duration-300 ${
         isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2'
-      } ${getTypeStyles()}`}
+      } ${getToastStyles(type)}`}
     >
       <div className="flex items-center gap-2">
         {type === 'success' && (
