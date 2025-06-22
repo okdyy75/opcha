@@ -15,7 +15,7 @@ interface Message {
   text: string;
   timestamp: string;
   userId: string;
-  userName: string; // 変更不可能なセッションID（#A1B2のような形式）
+  userSessionId: string; // 変更不可能なセッションID（#abc123のような形式）
   userNickname: string; // 変更可能なニックネーム
   isOwn: boolean;
 }
@@ -31,7 +31,7 @@ export default function ChatRoom() {
       text: 'こんにちは！このルームにようこそ！',
       timestamp: '14:30',
       userId: 'user1',
-      userName: '#A1B2',
+      userSessionId: 'abc123',
       userNickname: 'かわいいネコ123',
       isOwn: false
     },
@@ -40,7 +40,7 @@ export default function ChatRoom() {
       text: 'よろしくお願いします！',
       timestamp: '14:32',
       userId: 'user2',
-      userName: '#C3D4',
+      userSessionId: 'def456',
       userNickname: 'げんきなイヌ456',
       isOwn: true
     },
@@ -49,7 +49,7 @@ export default function ChatRoom() {
       text: '今日はいい天気ですね',
       timestamp: '14:35',
       userId: 'user1',
-      userName: '#A1B2',
+      userSessionId: 'abc123',
       userNickname: 'かわいいネコ123',
       isOwn: false
     }
@@ -86,7 +86,7 @@ export default function ChatRoom() {
         text: newMessage.trim(),
         timestamp,
         userId: 'currentUser',
-        userName: sessionId,
+        userSessionId: sessionId,
         userNickname: nickname,
         isOwn: true
       };
@@ -170,7 +170,7 @@ export default function ChatRoom() {
                 {!message.isOwn && (
                   <div className="text-xs text-[var(--line-dark-gray)] mb-1 px-1">
                     <span className="font-medium">{message.userNickname}</span>
-                    <span className="ml-1 opacity-70">{message.userName}</span>
+                    <span className="ml-1 opacity-70">#{message.userSessionId}</span>
                   </div>
                 )}
                 <div
@@ -204,7 +204,7 @@ export default function ChatRoom() {
             <div className="flex items-center gap-2">
               <span className="text-xs text-[var(--line-dark-gray)]">あなた:</span>
               <span className="text-sm font-medium text-[var(--foreground)]">{nickname}</span>
-              <span className="text-xs text-[var(--line-dark-gray)] opacity-70">{sessionId}</span>
+              <span className="text-xs text-[var(--line-dark-gray)] opacity-70">#{sessionId}</span>
             </div>
             <button
               onClick={() => setIsNicknameModalOpen(true)}
