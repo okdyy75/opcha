@@ -51,10 +51,10 @@ export default function Home() {
             </div>
             <div>
               <h2 className="text-xl font-bold text-[var(--foreground)] mb-2">
-                匿名でチャットを楽しもう
+                気軽にチャットを楽しもう
               </h2>
               <p className="text-sm text-[var(--line-dark-gray)] leading-relaxed">
-                ユーザー登録不要で気軽に参加できる<br />
+                ユーザー登録不要で誰でも参加できる<br />
                 オープンチャットルームです
               </p>
             </div>

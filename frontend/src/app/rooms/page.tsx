@@ -2,10 +2,6 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { useNickname } from '../../hooks/useNickname';
-import NicknameModal from '../../components/NicknameModal';
-import { useToast } from '../../hooks/useToast';
-import Toast from '../../components/Toast';
 
 interface ChatRoom {
   id: string;
@@ -42,9 +38,6 @@ export default function RoomsPage() {
 
   const [isCreating, setIsCreating] = useState(false);
   const [newRoomName, setNewRoomName] = useState('');
-  const { nickname, isLoading, updateNickname } = useNickname();
-  const [isNicknameModalOpen, setIsNicknameModalOpen] = useState(false);
-  const { toasts, success, removeToast } = useToast();
 
   const handleCreateRoom = () => {
     if (newRoomName.trim()) {
@@ -59,7 +52,7 @@ export default function RoomsPage() {
   return (
     <div className="min-h-screen bg-[var(--line-gray)]">
       {/* ヘッダー */}
-      <header className="bg-[var(--line-green)] text-white p-4 shadow-md">
+      <header className="bg-[var(--line-green)] text-white p-2 shadow-md">
         <div className="max-w-md mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Link 
@@ -70,24 +63,7 @@ export default function RoomsPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
             </Link>
-            <h1 className="text-xl font-bold">ルーム一覧</h1>
-          </div>
-          <div className="flex items-center gap-2">
-            {!isLoading && (
-              <button
-                onClick={() => setIsNicknameModalOpen(true)}
-                className="bg-white/20 hover:bg-white/30 px-3 py-2 rounded-full text-xs font-medium transition-colors"
-                title="ニックネーム変更"
-              >
-                {nickname}
-              </button>
-            )}
-            <button
-              onClick={() => setIsCreating(true)}
-              className="bg-white/20 hover:bg-white/30 px-4 py-2 rounded-full text-sm font-medium transition-colors"
-            >
-              ルーム作成
-            </button>
+            <h1 className="text-l font-bold">ルーム一覧</h1>
           </div>
         </div>
       </header>
@@ -191,30 +167,7 @@ export default function RoomsPage() {
         </div>
       )}
 
-      {/* Toast通知 */}
-      {toasts.map((toast) => (
-        <Toast
-          key={toast.id}
-          message={toast.message}
-          type={toast.type}
-          duration={toast.duration}
-          onClose={() => removeToast(toast.id)}
-        />
-      ))}
 
-      {/* ニックネーム設定モーダル */}
-      <NicknameModal
-        isOpen={isNicknameModalOpen}
-        currentNickname={nickname}
-        onClose={() => setIsNicknameModalOpen(false)}
-        onUpdate={(newNickname) => {
-          const result = updateNickname(newNickname);
-          if (result) {
-            success('ニックネームを更新しました');
-          }
-          return result;
-        }}
-      />
     </div>
   );
 } 
