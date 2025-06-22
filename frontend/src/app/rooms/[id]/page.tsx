@@ -32,7 +32,7 @@ export default function ChatRoom() {
       timestamp: '14:30',
       userId: 'user1',
       userName: '#A1B2',
-      userNickname: 'かわいいねこ123',
+      userNickname: 'かわいいネコ123',
       isOwn: false
     },
     {
@@ -41,7 +41,7 @@ export default function ChatRoom() {
       timestamp: '14:32',
       userId: 'user2',
       userName: '#C3D4',
-      userNickname: 'げんきないぬ456',
+      userNickname: 'げんきなイヌ456',
       isOwn: true
     },
     {
@@ -50,7 +50,7 @@ export default function ChatRoom() {
       timestamp: '14:35',
       userId: 'user1',
       userName: '#A1B2',
-      userNickname: 'かわいいねこ123',
+      userNickname: 'かわいいネコ123',
       isOwn: false
     }
   ]);

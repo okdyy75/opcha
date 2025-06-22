@@ -1,27 +1,9 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { generateRandomNickname } from '@/utils/nickname';
 
 const STORAGE_KEY = 'opcha_nickname';
-
-// ランダムなニックネームを生成
-const generateRandomNickname = (): string => {
-  const adjectives = [
-    'かわいい', 'すてきな', 'たのしい', 'やさしい', 'げんきな',
-    'あかるい', 'しずかな', 'おもしろい', 'すばらしい', 'うれしい'
-  ];
-  
-  const animals = [
-    'ねこ', 'いぬ', 'うさぎ', 'ぱんだ', 'りす',
-    'はむすたー', 'ぺんぎん', 'らいおん', 'ぞう', 'きりん'
-  ];
-  
-  const adjective = adjectives[Math.floor(Math.random() * adjectives.length)];
-  const animal = animals[Math.floor(Math.random() * animals.length)];
-  const number = Math.floor(Math.random() * 1000);
-  
-  return `${adjective}${animal}${number}`;
-};
 
 export function useNickname() {
   const [nickname, setNickname] = useState<string>('');

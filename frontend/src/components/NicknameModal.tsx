@@ -1,25 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-
-// ランダムなニックネームを生成（モーダル内でのみ使用）
-const generateRandomNickname = (): string => {
-  const adjectives = [
-    'かわいい', 'すてきな', 'たのしい', 'やさしい', 'げんきな',
-    'あかるい', 'しずかな', 'おもしろい', 'すばらしい', 'うれしい'
-  ];
-  
-  const animals = [
-    'ねこ', 'いぬ', 'うさぎ', 'ぱんだ', 'りす',
-    'はむすたー', 'ぺんぎん', 'らいおん', 'ぞう', 'きりん'
-  ];
-  
-  const adjective = adjectives[Math.floor(Math.random() * adjectives.length)];
-  const animal = animals[Math.floor(Math.random() * animals.length)];
-  const number = Math.floor(Math.random() * 1000);
-  
-  return `${adjective}${animal}${number}`;
-};
+import { generateRandomNickname } from '@/utils/nickname';
 
 interface NicknameModalProps {
   isOpen: boolean;
