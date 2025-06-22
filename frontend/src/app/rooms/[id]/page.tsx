@@ -140,7 +140,7 @@ export default function ChatRoom() {
       <header className="bg-white border-b border-[var(--border-color)] p-4 shadow-sm">
         <div className="max-w-md mx-auto flex items-center gap-3">
           <Link 
-            href="/"
+            href="/rooms"
             className="p-2 hover:bg-[var(--line-gray)] rounded-full transition-colors"
           >
             <svg className="w-5 h-5 text-[var(--line-dark-gray)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
