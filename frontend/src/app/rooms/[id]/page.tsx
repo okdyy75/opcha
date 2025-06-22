@@ -119,31 +119,31 @@ export default function ChatRoom() {
 
   if (nicknameLoading || sessionLoading) {
     return (
-      <div className="min-h-screen bg-[var(--bg-gray)] flex items-center justify-center">
+      <div className="min-h-screen bg-[var(--color-bg-secondary)] flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--primary-color)] mx-auto mb-2"></div>
-          <p className="text-[var(--text-gray)]">読み込み中...</p>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--color-primary-500)] mx-auto mb-2"></div>
+          <p className="text-[var(--color-text-secondary)]">読み込み中...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[var(--bg-gray)] flex flex-col">
+    <div className="min-h-screen bg-[var(--color-bg-secondary)] flex flex-col">
       {/* ヘッダー */}
-      <header className="bg-white border-b border-[var(--border-color)] p-4 shadow-sm">
+      <header className="bg-[var(--color-primary-500)] text-white border-b border-[var(--color-border-primary)] p-4 shadow-sm">
         <div className="max-w-md mx-auto flex items-center gap-3">
           <Link 
             href="/rooms"
-            className="p-2 hover:bg-[var(--bg-gray)] rounded-full transition-colors"
+            className="p-2 hover:bg-white/20 rounded-full transition-colors"
           >
-            <svg className="w-5 h-5 text-[var(--text-gray)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
           </Link>
           <div className="flex-1">
-            <h1 className="font-semibold text-[var(--foreground)]">{roomName}</h1>
-            <p className="text-xs text-[var(--text-gray)] flex items-center gap-1">
+            <h1 className="font-semibold text-white">{roomName}</h1>
+            <p className="text-xs text-white/80 flex items-center gap-1">
               <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 16 16">
                 <path d="M3 14s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1H3zm5-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/>
               </svg>
@@ -168,7 +168,7 @@ export default function ChatRoom() {
             >
               <div className={`max-w-[75%] ${message.isOwn ? 'order-2' : 'order-1'}`}>
                 {!message.isOwn && (
-                  <div className="text-xs text-[var(--text-gray)] mb-1 px-1">
+                  <div className="text-xs text-[var(--color-text-secondary)] mb-1 px-1">
                     <span className="font-medium">{message.userNickname}</span>
                     <span className="ml-1 opacity-70">#{message.userSessionId}</span>
                   </div>
@@ -176,15 +176,15 @@ export default function ChatRoom() {
                 <div
                   className={`inline-block p-3 rounded-2xl max-w-full break-words text-sm ${
                     message.isOwn 
-                      ? 'bg-[var(--message-bubble-self)] text-[var(--message-text-self)]'
-                      : 'bg-[var(--message-bubble-other)] text-[var(--message-text-other)] border border-[var(--border-color)]'
+                      ? 'bg-[var(--color-message-self-bg)] text-[var(--color-message-self-text)]'
+                      : 'bg-[var(--color-message-other-bg)] text-[var(--color-message-other-text)] border border-[var(--color-border-primary)]'
                   }`}
                 >
                   <p className="text-sm leading-relaxed whitespace-pre-wrap">
                     {message.text}
                   </p>
                 </div>
-                <div className={`text-xs text-[var(--text-gray)] mt-1 px-1 ${
+                <div className={`text-xs text-[var(--color-text-secondary)] mt-1 px-1 ${
                   message.isOwn ? 'text-right' : 'text-left'
                 }`}>
                   <div>{message.timestamp}</div>
@@ -197,21 +197,21 @@ export default function ChatRoom() {
       </div>
 
       {/* メッセージ入力エリア */}
-      <div className="bg-white border-t border-[var(--border-color)]">
+      <div className="bg-white border-t border-[var(--color-border-primary)]">
         {/* 自分の情報表示 */}
-        <div className="max-w-md mx-auto px-4 py-2 border-b border-[var(--border-light-gray)]">
+        <div className="max-w-md mx-auto px-4 py-2 border-b border-[var(--color-border-primary)]">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="text-xs text-[var(--text-gray)]">あなた:</span>
-              <span className="text-sm font-medium text-[var(--foreground)]">{nickname}</span>
-              <span className="text-xs text-[var(--text-gray)] opacity-70">#{sessionId}</span>
+              <span className="text-xs text-[var(--color-text-secondary)]">あなた:</span>
+              <span className="text-sm font-medium text-[var(--color-text-primary)]">{nickname}</span>
+              <span className="text-xs text-[var(--color-text-secondary)] opacity-70">#{sessionId}</span>
             </div>
             <button
               onClick={() => setIsNicknameModalOpen(true)}
-              className="p-1.5 hover:bg-[var(--bg-gray)] rounded-full transition-colors"
+              className="p-1.5 hover:bg-[var(--color-bg-secondary)] rounded-full transition-colors"
               title="ニックネーム変更"
             >
-              <svg className="w-4 h-4 text-[var(--text-gray)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4 text-[var(--color-text-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
               </svg>
             </button>
@@ -228,7 +228,7 @@ export default function ChatRoom() {
                 onChange={(e) => setNewMessage(e.target.value)}
                 onKeyPress={handleKeyPress}
                 placeholder="メッセージを入力..."
-                className="w-full p-3 pr-12 border border-[var(--border-color)] rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)] focus:border-transparent text-sm"
+                className="w-full p-3 pr-12 border border-[var(--color-border-primary)] rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-500)] focus:border-transparent text-sm"
                 rows={1}
                 style={{ minHeight: '44px', maxHeight: '120px' }}
               />
@@ -236,7 +236,7 @@ export default function ChatRoom() {
             <button
               onClick={handleSendMessage}
               disabled={!newMessage.trim()}
-              className="bg-[var(--primary-color)] hover:bg-[var(--primary-color-hover)] disabled:bg-[var(--text-gray)] text-white p-3 rounded-full transition-colors disabled:cursor-not-allowed"
+              className="bg-[var(--color-primary-500)] hover:bg-[var(--color-primary-600)] disabled:bg-[var(--color-text-secondary)] text-white p-3 rounded-full transition-colors disabled:cursor-not-allowed"
             >
               <svg className="w-5 h-5 rotate-45" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />

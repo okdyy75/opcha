@@ -59,16 +59,16 @@ export default function NicknameModal({
           <button
             type="button"
             onClick={onClose}
-            className="p-1 hover:bg-[var(--bg-gray)] rounded-full transition-colors"
+            className="p-1 hover:bg-[var(--color-bg-secondary)] rounded-full transition-colors"
           >
-            <svg className="w-5 h-5 text-[var(--text-gray)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-5 h-5 text-[var(--color-text-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
         </div>
 
         <div className="mb-4">
-          <label className="block text-sm font-medium text-[var(--foreground)] mb-2">
+          <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-2">
             ニックネーム
           </label>
           <div className="flex gap-2">
@@ -80,12 +80,12 @@ export default function NicknameModal({
                 setError('');
               }}
               placeholder="ニックネームを入力"
-              className="flex-1 p-3 border border-[var(--border-color)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)] focus:border-transparent text-sm"
+              className="flex-1 p-3 border border-[var(--color-border-primary)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-500)] focus:border-transparent text-sm"
               maxLength={20}
             />
             <button
               onClick={handleRegenerate}
-              className="px-3 py-2 border border-[var(--border-color)] rounded-lg hover:bg-[var(--bg-gray)] transition-colors text-sm"
+              className="px-3 py-2 border border-[var(--color-border-primary)] rounded-lg hover:bg-[var(--color-bg-secondary)] transition-colors text-sm"
               title="ランダム生成"
             >
               🎲
@@ -94,7 +94,7 @@ export default function NicknameModal({
           {error && (
             <p className="text-red-500 text-xs mt-1">{error}</p>
           )}
-          <p className="text-xs text-[var(--text-gray)] mt-1">
+          <p className="text-xs text-[var(--color-text-secondary)] mt-1">
             20文字以内で入力してください
           </p>
         </div>
@@ -103,14 +103,14 @@ export default function NicknameModal({
           <button
             type="button"
             onClick={onClose}
-            className="flex-1 py-3 border border-[var(--border-color)] rounded-lg font-medium hover:bg-[var(--bg-gray)] transition-colors"
+            className="flex-1 py-3 border border-[var(--color-border-primary)] rounded-lg font-medium hover:bg-[var(--color-bg-secondary)] transition-colors"
           >
             キャンセル
           </button>
           <button
             type="submit"
             onClick={handleSubmit}
-            className="flex-1 py-3 bg-[var(--primary-color)] hover:bg-[var(--primary-color-hover)] text-white rounded-lg font-medium transition-colors"
+            className="flex-1 py-3 bg-[var(--color-primary-500)] hover:bg-[var(--color-primary-600)] text-white rounded-lg font-medium transition-colors"
           >
             設定
           </button>
