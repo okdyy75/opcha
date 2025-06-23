@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import CreateRoomModal from '@/components/CreateRoomModal';
 
 interface ChatRoom {
   id: string;
@@ -37,22 +38,19 @@ export default function RoomsPage() {
   ]);
 
   const [isCreating, setIsCreating] = useState(false);
-  const [newRoomName, setNewRoomName] = useState('');
 
-  const handleCreateRoom = () => {
-    if (newRoomName.trim()) {
-      // ここで実際のルーム作成処理を行う
-      const roomId = Math.random().toString(36).substring(7);
-      console.log('新しいルーム作成:', { name: newRoomName, id: roomId });
-      setIsCreating(false);
-      setNewRoomName('');
-    }
+  const handleCreateRoom = (roomName: string) => {
+    // ここで実際のルーム作成処理を行う
+    const roomId = Math.random().toString(36).substring(2, 9);
+    console.log('新しいルーム作成:', { name: roomName, id: roomId });
+    // ルーム作成後、そのルームに移動
+    window.location.href = `/rooms/${roomId}`;
   };
 
   return (
     <div className="min-h-screen bg-[var(--color-bg-secondary)]">
       {/* ヘッダー */}
-      <header className="bg-[var(--color-primary-500)] text-white p-2 shadow-md">
+      <header className="bg-[var(--color-primary-500)] text-white p-3 shadow-md">
         <div className="max-w-md mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Link 
@@ -63,8 +61,14 @@ export default function RoomsPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
             </Link>
-            <h1 className="text-l font-bold">ルーム一覧</h1>
+            <h1 className="font-semibold text-white">ルーム一覧</h1>
           </div>
+          <button
+            onClick={() => setIsCreating(true)}
+            className="bg-white/20 hover:bg-white/30 px-4 py-2 rounded-full text-sm font-medium transition-colors"
+          >
+            ルーム作成
+          </button>
         </div>
       </header>
 
@@ -133,39 +137,11 @@ export default function RoomsPage() {
       </main>
 
       {/* ルーム作成モーダル */}
-      {isCreating && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-sm">
-            <h3 className="text-lg font-semibold mb-4">新しいルームを作成</h3>
-            <input
-              type="text"
-              value={newRoomName}
-              onChange={(e) => setNewRoomName(e.target.value)}
-              placeholder="ルーム名を入力"
-              className="w-full p-3 border border-[var(--color-border-primary)] rounded-lg mb-4 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-500)] focus:border-transparent"
-              autoFocus
-            />
-            <div className="flex gap-2">
-              <button
-                onClick={() => {
-                  setIsCreating(false);
-                  setNewRoomName('');
-                }}
-                className="flex-1 py-3 border border-[var(--color-border-primary)] rounded-lg font-medium hover:bg-[var(--color-bg-secondary)] transition-colors"
-              >
-                キャンセル
-              </button>
-              <button
-                onClick={handleCreateRoom}
-                disabled={!newRoomName.trim()}
-                className="flex-1 py-3 bg-[var(--color-primary-500)] hover:bg-[var(--color-primary-600)] text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                作成
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <CreateRoomModal
+        isOpen={isCreating}
+        onClose={() => setIsCreating(false)}
+        onCreateRoom={handleCreateRoom}
+      />
 
 
     </div>

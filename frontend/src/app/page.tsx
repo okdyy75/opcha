@@ -2,19 +2,19 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import CreateRoomModal from '@/components/CreateRoomModal';
 
 export default function Home() {
   const [roomId, setRoomId] = useState('');
-  const [isCreating, setIsCreating] = useState(false);
+  const [showCreateModal, setShowCreateModal] = useState(false);
   const [isJoining, setIsJoining] = useState(false);
 
-  const handleCreateRoom = async () => {
-    setIsCreating(true);
+  const handleCreateRoom = (roomName: string) => {
     // TODO: バックエンドAPI呼び出し
-    const newRoomId = Math.random().toString(36).substr(2, 9);
-    setTimeout(() => {
-      window.location.href = `/rooms/${newRoomId}`;
-    }, 500);
+    const newRoomId = Math.random().toString(36).substring(2, 9);
+    console.log('新しいルーム作成:', { name: roomName, id: newRoomId });
+    // ルーム作成後、そのルームに移動
+    window.location.href = `/rooms/${newRoomId}`;
   };
 
   const handleJoinRoom = async () => {
@@ -66,11 +66,10 @@ export default function Home() {
             <div className="bg-white rounded-lg p-4 shadow-sm border border-[var(--color-border-primary)]">
               <h3 className="font-medium text-[var(--color-text-primary)] mb-3">新しいルームを作成</h3>
               <button
-                onClick={handleCreateRoom}
-                disabled={isCreating}
-                className="w-full bg-[var(--color-primary-500)] hover:bg-[var(--color-primary-600)] text-white py-3 px-4 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                onClick={() => setShowCreateModal(true)}
+                className="w-full bg-[var(--color-primary-500)] hover:bg-[var(--color-primary-600)] text-white py-3 px-4 rounded-lg font-medium transition-colors"
               >
-                {isCreating ? 'ルーム作成中...' : 'ルームを作成する'}
+                ルームを作成する
               </button>
             </div>
 
@@ -120,6 +119,13 @@ export default function Home() {
           </div>
         </div>
       </main>
+
+      {/* ルーム作成モーダル */}
+      <CreateRoomModal
+        isOpen={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        onCreateRoom={handleCreateRoom}
+      />
     </div>
   );
 }

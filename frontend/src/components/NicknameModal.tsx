@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { generateRandomNickname } from '@/utils/nickname';
+import Modal from './Modal';
 
 interface NicknameModalProps {
   isOpen: boolean;
@@ -49,73 +50,61 @@ export default function NicknameModal({
     setError('');
   };
 
-  if (!isOpen) return null;
-
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-lg p-6 w-full max-w-sm">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold">ニックネーム設定</h3>
+    <Modal 
+      isOpen={isOpen} 
+      onClose={onClose} 
+      title="ニックネーム設定" 
+      showCloseButton={true}
+    >
+      <div className="mb-4">
+        <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-2">
+          ニックネーム
+        </label>
+        <div className="flex gap-2">
+          <input
+            type="text"
+            value={tempNickname}
+            onChange={(e) => {
+              setTempNickname(e.target.value);
+              setError('');
+            }}
+            placeholder="ニックネームを入力"
+            className="flex-1 p-3 border border-[var(--color-border-primary)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-500)] focus:border-transparent"
+            maxLength={20}
+          />
           <button
-            type="button"
-            onClick={onClose}
-            className="p-1 hover:bg-[var(--color-bg-secondary)] rounded-full transition-colors"
+            onClick={handleRegenerate}
+            className="px-3 py-2 border border-[var(--color-border-primary)] rounded-lg hover:bg-[var(--color-bg-secondary)] transition-colors"
+            title="ランダム生成"
           >
-            <svg className="w-5 h-5 text-[var(--color-text-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
+            🎲
           </button>
         </div>
-
-        <div className="mb-4">
-          <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-2">
-            ニックネーム
-          </label>
-          <div className="flex gap-2">
-            <input
-              type="text"
-              value={tempNickname}
-              onChange={(e) => {
-                setTempNickname(e.target.value);
-                setError('');
-              }}
-              placeholder="ニックネームを入力"
-              className="flex-1 p-3 border border-[var(--color-border-primary)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-500)] focus:border-transparent text-sm"
-              maxLength={20}
-            />
-            <button
-              onClick={handleRegenerate}
-              className="px-3 py-2 border border-[var(--color-border-primary)] rounded-lg hover:bg-[var(--color-bg-secondary)] transition-colors text-sm"
-              title="ランダム生成"
-            >
-              🎲
-            </button>
-          </div>
-          {error && (
-            <p className="text-red-500 text-xs mt-1">{error}</p>
-          )}
-          <p className="text-xs text-[var(--color-text-secondary)] mt-1">
-            20文字以内で入力してください
-          </p>
-        </div>
-
-        <div className="flex gap-2 mt-6">
-          <button
-            type="button"
-            onClick={onClose}
-            className="flex-1 py-3 border border-[var(--color-border-primary)] rounded-lg font-medium hover:bg-[var(--color-bg-secondary)] transition-colors"
-          >
-            キャンセル
-          </button>
-          <button
-            type="submit"
-            onClick={handleSubmit}
-            className="flex-1 py-3 bg-[var(--color-primary-500)] hover:bg-[var(--color-primary-600)] text-white rounded-lg font-medium transition-colors"
-          >
-            設定
-          </button>
-        </div>
+        {error && (
+          <p className="text-red-500 text-xs mt-1">{error}</p>
+        )}
+        <p className="text-xs text-[var(--color-text-secondary)] mt-1">
+          20文字以内で入力してください
+        </p>
       </div>
-    </div>
+
+      <div className="flex gap-2">
+        <button
+          type="button"
+          onClick={onClose}
+          className="flex-1 py-3 border border-[var(--color-border-primary)] rounded-lg font-medium hover:bg-[var(--color-bg-secondary)] transition-colors"
+        >
+          キャンセル
+        </button>
+        <button
+          type="submit"
+          onClick={handleSubmit}
+          className="flex-1 py-3 bg-[var(--color-primary-500)] hover:bg-[var(--color-primary-600)] text-white rounded-lg font-medium transition-colors"
+        >
+          設定
+        </button>
+      </div>
+    </Modal>
   );
 } 
