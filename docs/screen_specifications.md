@@ -123,18 +123,7 @@
 ## 8. アクセシビリティ
 
 ### 対応項目
-- **WAI-ARIA準拠**: 
-  - モーダル: `role="dialog"`, `aria-modal="true"`, `aria-labelledby`
-  - 通知: `role="alert"`, `aria-live="polite"`, `aria-atomic="true"`
-  - フォーム: `htmlFor`属性でlabel-input関連付け
-- **キーボード操作**: 
-  - Enter, Escapeキー対応
-  - モーダル: Escキーで閉じる、バックドロップクリック対応
-  - フォーム: Enterキーでの送信対応
-- **スクリーンリーダー対応**:
-  - ボタンの`aria-label`属性
-  - エラーメッセージの`role="alert"`
-  - 絵文字の`role="img"`と`aria-label`
-- **基本対応**:
-  - 十分な色のコントラスト
-  - 適切なセマンティックHTML
+- **WAI-ARIA準拠**: モーダル・通知・フォームで適切な属性を使用
+- **キーボード操作**: Enter・Escapeキー対応
+- **スクリーンリーダー対応**: 適切なラベルと説明を提供
+- **基本対応**: 十分なコントラスト・セマンティックHTML
