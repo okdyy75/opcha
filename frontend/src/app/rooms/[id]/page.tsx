@@ -60,7 +60,7 @@ export default function ChatRoom() {
   const [participantCount] = useState(3);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const { toasts, success, removeToast } = useToast();
+  const { toasts, success, error, removeToast } = useToast();
   const { nickname, isLoading: nicknameLoading, updateNickname } = useNickname();
   const { sessionId, isLoading: sessionLoading } = useSessionId();
   const [isNicknameModalOpen, setIsNicknameModalOpen] = useState(false);
@@ -153,6 +153,7 @@ export default function ChatRoom() {
           <ShareButton
             roomId={roomId}
             onSuccess={success}
+            onError={error}
             iconOnly={false}
           />
         </div>
