@@ -58,16 +58,25 @@ export default function NicknameModal({
       showCloseButton={true}
     >
       <div className="mb-4">
-        <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-2">
+        <label 
+          htmlFor="nickname-input"
+          className="block text-sm font-medium text-[var(--color-text-primary)] mb-2"
+        >
           ニックネーム
         </label>
         <div className="flex gap-2">
           <input
+            id="nickname-input"
             type="text"
             value={tempNickname}
             onChange={(e) => {
               setTempNickname(e.target.value);
               setError('');
+            }}
+            onKeyPress={(e) => {
+              if (e.key === 'Enter') {
+                handleSubmit();
+              }
             }}
             placeholder="ニックネームを入力"
             className="flex-1 p-3 border border-[var(--color-border-primary)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-500)] focus:border-transparent"
@@ -77,12 +86,13 @@ export default function NicknameModal({
             onClick={handleRegenerate}
             className="px-3 py-2 border border-[var(--color-border-primary)] rounded-lg hover:bg-[var(--color-bg-secondary)] transition-colors"
             title="ランダム生成"
+            aria-label="ランダムなニックネームを生成"
           >
-            🎲
+            <span role="img" aria-label="サイコロ">🎲</span>
           </button>
         </div>
         {error && (
-          <p className="text-red-500 text-xs mt-1">{error}</p>
+          <p className="text-red-500 text-xs mt-1" role="alert">{error}</p>
         )}
         <p className="text-xs text-[var(--color-text-secondary)] mt-1">
           20文字以内で入力してください

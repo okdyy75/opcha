@@ -41,6 +41,7 @@ export default function ShareButton({
         onClick={handleCopyUrl}
         className={className || "p-2 hover:bg-white/20 rounded-full transition-colors"}
         title={title}
+        aria-label="ルームのURLをコピー"
       >
         <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
@@ -53,6 +54,7 @@ export default function ShareButton({
     <button
       onClick={handleCopyUrl}
       className={className || "flex items-center space-x-2 px-4 py-2 bg-white/20 hover:bg-white/30 text-white text-sm rounded-lg transition-colors duration-200 font-medium"}
+      aria-label="ルームのURLをコピー"
     >
       <span>{copied ? 'コピー済み!' : '🔗 URLをシェア'}</span>
     </button>

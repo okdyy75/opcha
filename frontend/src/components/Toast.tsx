@@ -37,6 +37,9 @@ export default function Toast({ message, type = 'info', duration = 3000, onClose
       className={`fixed top-4 left-1/2 transform -translate-x-1/2 z-50 px-4 py-3 rounded-lg shadow-lg transition-all duration-300 ${
         isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2'
       } ${getToastStyles(type)}`}
+      role="alert"
+      aria-live="polite"
+      aria-atomic="true"
     >
       <div className="flex items-center gap-2">
         {type === 'success' && (
