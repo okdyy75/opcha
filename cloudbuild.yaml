@@ -1,0 +1,88 @@
+steps:
+  # Build backend image
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - -t
+      - asia-east1-docker.pkg.dev/${PROJECT_ID}/opcha-repo/opcha-backend:latest
+      - ./backend
+    id: build-backend
+
+  # Build frontend image
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - -t
+      - asia-east1-docker.pkg.dev/${PROJECT_ID}/opcha-repo/opcha-frontend:latest
+      - ./frontend
+    id: build-frontend
+
+  # Push backend image
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - push
+      - asia-east1-docker.pkg.dev/${PROJECT_ID}/opcha-repo/opcha-backend:latest
+    id: push-backend
+    waitFor: [build-backend]
+
+  # Push frontend image
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - push
+      - asia-east1-docker.pkg.dev/${PROJECT_ID}/opcha-repo/opcha-frontend:latest
+    id: push-frontend
+    waitFor: [build-frontend]
+
+  # Deploy backend to Cloud Run
+  - name: gcr.io/google.com/cloudsdktool/cloud-sdk
+    entrypoint: gcloud
+    args:
+      - run
+      - deploy
+      - opcha-backend
+      - --image=asia-east1-docker.pkg.dev/${PROJECT_ID}/opcha-repo/opcha-backend:latest
+      - --region=$_REGION
+      - --allow-unauthenticated
+      - --add-cloudsql-instances=${_CLOUDSQL_INSTANCE}
+      - --cpu=0.25
+      - --memory=0.5Gi
+      - --min-instances=0
+      - --port=3000
+      - --set-env-vars=RAILS_ENV=${_ENVIRONMENT}
+      - --set-env-vars=DB_HOST=/cloudsql/${_CLOUDSQL_INSTANCE}
+      - --set-env-vars=DB_PORT=5432
+      - --set-secrets=RAILS_MASTER_KEY=RAILS_MASTER_KEY:latest
+      - --set-secrets=DB_NAME=DB_NAME:latest
+      - --set-secrets=DB_USERNAME=DB_USERNAME:latest
+      - --set-secrets=DB_PASSWORD=DB_PASSWORD:latest
+    id: deploy-backend
+    waitFor: [push-backend]
+
+  # Deploy frontend to Cloud Run
+  - name: gcr.io/google.com/cloudsdktool/cloud-sdk
+    entrypoint: gcloud
+    args:
+      - run
+      - deploy
+      - opcha-frontend
+      - --image=asia-east1-docker.pkg.dev/${PROJECT_ID}/opcha-repo/opcha-frontend:latest
+      - --region=$_REGION
+      - --allow-unauthenticated
+      - --cpu=0.25
+      - --memory=0.5Gi
+      - --min-instances=0
+      - --port=3000
+      - --set-env-vars=NODE_ENV=${_ENVIRONMENT}
+      - --set-env-vars=NEXT_PUBLIC_API_URL=${_API_URL}
+    id: deploy-frontend
+    waitFor: [push-frontend]
+
+substitutions:
+  _REGION: asia-east1 # 台湾リージョン
+  _ENVIRONMENT: production
+  _CLOUDSQL_INSTANCE: ${PROJECT_ID}:${_REGION}:opcha-db
+  _API_URL: https://opcha-backend-33r64w4piq-de.a.run.app
+
+options:
+  logging: CLOUD_LOGGING_ONLY
+  dynamicSubstitutions: true
