@@ -1,6 +1,6 @@
 'use client';
 
-import { ReactNode, useEffect, useRef } from 'react';
+import { ReactNode, useEffect } from 'react';
 
 interface ModalProps {
   isOpen: boolean;
@@ -19,51 +19,13 @@ export default function Modal({
   maxWidth = 'max-w-sm',
   showCloseButton = false 
 }: ModalProps) {
-  const modalRef = useRef<HTMLDivElement>(null);
-  const firstFocusableRef = useRef<HTMLElement | null>(null);
-  const lastFocusableRef = useRef<HTMLElement | null>(null);
-
   useEffect(() => {
     if (!isOpen) return;
-
-    // フォーカス可能な要素を取得
-    const modal = modalRef.current;
-    if (!modal) return;
-
-    const focusableElements = modal.querySelectorAll(
-      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-    );
-
-    if (focusableElements.length > 0) {
-      firstFocusableRef.current = focusableElements[0] as HTMLElement;
-      lastFocusableRef.current = focusableElements[focusableElements.length - 1] as HTMLElement;
-      
-      // 最初の要素にフォーカス
-      firstFocusableRef.current?.focus();
-    }
 
     // Escキーでモーダルを閉じる
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape' && onClose) {
         onClose();
-        return;
-      }
-
-      // Tabキーでフォーカストラップ
-      if (event.key === 'Tab') {
-        if (event.shiftKey) {
-          // Shift+Tab: 最初の要素で前に戻ろうとしたら最後の要素へ
-          if (document.activeElement === firstFocusableRef.current) {
-            event.preventDefault();
-            lastFocusableRef.current?.focus();
-          }
-        } else {
-          // Tab: 最後の要素で次に行こうとしたら最初の要素へ
-          if (document.activeElement === lastFocusableRef.current) {
-            event.preventDefault();
-            firstFocusableRef.current?.focus();
-          }
-        }
       }
     };
 
@@ -95,7 +57,6 @@ export default function Modal({
       aria-labelledby="modal-title"
     >
       <div 
-        ref={modalRef}
         className={`bg-white rounded-lg p-6 w-full ${maxWidth}`}
         onClick={(e) => e.stopPropagation()}
       >
