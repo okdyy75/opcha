@@ -1,103 +1,131 @@
-import Image from "next/image";
+'use client';
+
+import { useState } from 'react';
+import Link from 'next/link';
+import CreateRoomModal from '@/components/CreateRoomModal';
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const [roomId, setRoomId] = useState('');
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [isJoining, setIsJoining] = useState(false);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  const handleCreateRoom = (roomName: string) => {
+    // TODO: バックエンドAPI呼び出し
+    const newRoomId = Math.random().toString(36).substring(2, 9);
+    console.log('新しいルーム作成:', { name: roomName, id: newRoomId });
+    // ルーム作成後、そのルームに移動
+    window.location.href = `/rooms/${newRoomId}`;
+  };
+
+  const handleJoinRoom = async () => {
+    if (!roomId.trim()) return;
+    setIsJoining(true);
+    // TODO: ルーム存在確認API呼び出し
+    setTimeout(() => {
+      window.location.href = `/rooms/${roomId.trim()}`;
+    }, 500);
+  };
+
+  return (
+    <div className="min-h-screen bg-[var(--color-bg-secondary)] flex flex-col">
+      {/* ヘッダー */}
+      <header className="bg-[var(--color-primary-500)] text-white px-4 py-3 shadow-md">
+        <div className="max-w-md mx-auto">
+          <h1 className="text-lg font-semibold text-center">opcha</h1>
+        </div>
+      </header>
+
+      {/* メインコンテンツ */}
+      <main className="flex-1 flex flex-col justify-center px-4 py-8">
+        <div className="max-w-md mx-auto w-full space-y-6">
+          {/* ロゴ・説明エリア */}
+          <div className="text-center space-y-4">
+            <div className="w-16 h-16 bg-[var(--color-primary-500)] rounded-full mx-auto flex items-center justify-center">
+              <svg 
+                className="w-8 h-8 text-white" 
+                fill="currentColor" 
+                viewBox="0 0 24 24"
+              >
+                <path d="M20 2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h4l4 4 4-4h4c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/>
+              </svg>
+            </div>
+            <div>
+              <h2 className="text-xl font-bold text-[var(--color-text-primary)] mb-2">
+                気軽にチャットを楽しもう
+              </h2>
+              <p className="text-sm text-[var(--color-text-secondary)] leading-relaxed">
+                ユーザー登録不要で誰でも参加できる<br />
+                オープンチャットルームです
+              </p>
+            </div>
+          </div>
+
+          {/* アクションボタンエリア */}
+          <div className="space-y-4">
+            {/* 新しいルーム作成 */}
+            <div className="bg-white rounded-lg p-4 shadow-sm border border-[var(--color-border-primary)]">
+              <h3 className="font-medium text-[var(--color-text-primary)] mb-3">新しいルームを作成</h3>
+              <button
+                onClick={() => setShowCreateModal(true)}
+                className="w-full bg-[var(--color-primary-500)] hover:bg-[var(--color-primary-600)] text-white py-3 px-4 rounded-lg font-medium transition-colors"
+              >
+                ルームを作成する
+              </button>
+            </div>
+
+            {/* 既存ルーム参加 */}
+            <div className="bg-white rounded-lg p-4 shadow-sm border border-[var(--color-border-primary)]">
+              <h3 className="font-medium text-[var(--color-text-primary)] mb-3">既存のルームに参加</h3>
+              <div className="space-y-3">
+                <input
+                  type="text"
+                  placeholder="ルームIDを入力"
+                  value={roomId}
+                  onChange={(e) => setRoomId(e.target.value)}
+                  className="w-full p-3 border border-[var(--color-border-primary)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-500)] focus:border-transparent text-sm"
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter') {
+                      handleJoinRoom();
+                    }
+                  }}
+                />
+                <button
+                  onClick={handleJoinRoom}
+                  disabled={!roomId.trim() || isJoining}
+                  className="w-full bg-white border border-[var(--color-primary-500)] text-[var(--color-primary-500)] hover:bg-[var(--color-bg-secondary)] py-3 px-4 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isJoining ? 'ルーム参加中...' : 'ルームに参加する'}
+                </button>
+              </div>
+            </div>
+
+            {/* ルーム一覧へのリンク */}
+            <div className="text-center">
+              <Link 
+                href="/rooms"
+                className="text-[var(--color-primary-500)] hover:text-[var(--color-primary-600)] text-sm font-medium underline"
+              >
+                ルーム一覧を見る →
+              </Link>
+            </div>
+          </div>
+
+          {/* 利用上の注意 */}
+          <div className="text-center">
+            <p className="text-xs text-[var(--color-text-secondary)] leading-relaxed">
+              チャットルームは24時間後に自動削除されます<br />
+              誹謗中傷や不適切な発言はお控えください
+            </p>
+          </div>
         </div>
       </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+
+      {/* ルーム作成モーダル */}
+      <CreateRoomModal
+        isOpen={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        onCreateRoom={handleCreateRoom}
+      />
     </div>
   );
 }
