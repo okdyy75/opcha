@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState } from 'react';
 
 interface ToastProps {
   message: string;
@@ -21,27 +21,14 @@ export default function Toast({ message, type = 'info', duration = 3000, onClose
     return () => clearTimeout(timer);
   }, [duration, onClose]);
 
-  // パフォーマンス最適化: スタイルをメモ化
-  const toastStyles = useMemo(() => {
+  const getToastStyles = (type: 'success' | 'error' | 'info') => {
     switch (type) {
       case 'success':
-        return 'bg-[var(--color-primary-500)] text-white';
+        return 'bg-green-500 text-white';
       case 'error':
         return 'bg-red-500 text-white';
       default:
         return 'bg-gray-800 text-white';
-    }
-  }, [type]);
-
-  // アクセシビリティ: アイコンのaria-label
-  const getIconAriaLabel = (type: string) => {
-    switch (type) {
-      case 'success':
-        return '成功';
-      case 'error':
-        return 'エラー';
-      default:
-        return '情報';
     }
   };
 
@@ -49,42 +36,24 @@ export default function Toast({ message, type = 'info', duration = 3000, onClose
     <div
       className={`fixed top-4 left-1/2 transform -translate-x-1/2 z-50 px-4 py-3 rounded-lg shadow-lg transition-all duration-300 ${
         isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2'
-      } ${toastStyles}`}
+      } ${getToastStyles(type)}`}
       role="alert"
       aria-live="polite"
       aria-atomic="true"
     >
       <div className="flex items-center gap-2">
         {type === 'success' && (
-          <svg 
-            className="w-5 h-5" 
-            fill="none" 
-            stroke="currentColor" 
-            viewBox="0 0 24 24"
-            aria-label={getIconAriaLabel(type)}
-          >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
           </svg>
         )}
         {type === 'error' && (
-          <svg 
-            className="w-5 h-5" 
-            fill="none" 
-            stroke="currentColor" 
-            viewBox="0 0 24 24"
-            aria-label={getIconAriaLabel(type)}
-          >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
           </svg>
         )}
         {type === 'info' && (
-          <svg 
-            className="w-5 h-5" 
-            fill="none" 
-            stroke="currentColor" 
-            viewBox="0 0 24 24"
-            aria-label={getIconAriaLabel(type)}
-          >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
         )}
