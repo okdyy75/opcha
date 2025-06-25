@@ -1,6 +1,7 @@
 // API client for opcha backend
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+console.log(API_BASE_URL);
 
 interface ApiResponse<T> {
   data?: T;
@@ -32,9 +33,13 @@ class ApiClient {
       },
     };
 
+    console.log(`🌐 API Request: ${config.method || 'GET'} ${url}`, config.body);
+
     try {
       const response = await fetch(url, config);
       const data = await response.json();
+
+      console.log(`📡 API Response: ${response.status}`, data);
 
       if (!response.ok) {
         return { error: data.error || { message: 'Unknown error', code: 'UNKNOWN_ERROR' } };
@@ -42,7 +47,7 @@ class ApiClient {
 
       return { data };
     } catch (error) {
-      console.error('API request failed:', error);
+      console.error('❌ API request failed:', error);
       return { 
         error: { 
           message: 'Network error or server unavailable', 
