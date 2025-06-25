@@ -40,8 +40,11 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_25_090257) do
   end
 
   create_table "sessions", force: :cascade do |t|
-    t.string "session_id", null: false
+    t.string "session_id", limit: 255, null: false
     t.text "data"
+    t.string "ip_address", limit: 45
+    t.text "user_agent"
+    t.string "nickname", limit: 32
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["session_id"], name: "index_sessions_on_session_id", unique: true
