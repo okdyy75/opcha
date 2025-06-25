@@ -7,13 +7,14 @@ interface CreateRoomModalProps {
   isOpen: boolean;
   onClose: () => void;
   onCreateRoom: (roomName: string) => void;
+  isCreating?: boolean;
 }
 
-export default function CreateRoomModal({ isOpen, onClose, onCreateRoom }: CreateRoomModalProps) {
+export default function CreateRoomModal({ isOpen, onClose, onCreateRoom, isCreating = false }: CreateRoomModalProps) {
   const [roomName, setRoomName] = useState('');
 
   const handleSubmit = () => {
-    if (roomName.trim()) {
+    if (roomName.trim() && !isCreating) {
       onCreateRoom(roomName.trim());
       setRoomName('');
     }
@@ -62,10 +63,10 @@ export default function CreateRoomModal({ isOpen, onClose, onCreateRoom }: Creat
         </button>
         <button
           onClick={handleSubmit}
-          disabled={!roomName.trim()}
+          disabled={!roomName.trim() || isCreating}
           className="flex-1 py-3 bg-[var(--color-primary-500)] hover:bg-[var(--color-primary-600)] text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          作成
+          {isCreating ? '作成中...' : '作成'}
         </button>
       </div>
     </Modal>
