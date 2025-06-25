@@ -12,6 +12,14 @@ class Room < ApplicationRecord
   private
 
   def generate_share_token
-    self.share_token = SecureRandom.urlsafe_base64(48)
+    # 6桁の英数字でユニークなshare_tokenを生成
+    loop do
+      token = SecureRandom.alphanumeric(6).downcase
+      break self.share_token = token unless Room.exists?(share_token: token)
+    end
+  end
+
+  def to_param
+    share_token
   end
 end

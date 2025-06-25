@@ -64,7 +64,7 @@ export default function RoomsPage() {
 
       if (response.data?.room) {
         showToast(`ルーム「${roomName}」を作成しました`, 'success');
-        router.push(`/rooms/${response.data.room.id}`);
+        router.push(`/rooms/${response.data.room.share_token}`);
       }
     } catch {
       showToast('ルーム作成に失敗しました', 'error');
