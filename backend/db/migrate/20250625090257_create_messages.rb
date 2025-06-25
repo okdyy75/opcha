@@ -10,6 +10,6 @@ class CreateMessages < ActiveRecord::Migration[8.0]
 
     add_index :messages, :session_id
     add_index :messages, :discarded_at
-    add_index :messages, [:room_id, :created_at]
+    add_index :messages, [ :room_id, :created_at ]
   end
 end

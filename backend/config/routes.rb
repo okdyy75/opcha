@@ -1,14 +1,14 @@
 Rails.application.routes.draw do
   namespace :api do
     get "hello", to: "hello#hello"
-    
+
     # セッション管理
-    resources :sessions, only: [:create, :update], param: :session_id
-    
+    resources :sessions, only: [ :create, :update ], param: :session_id
+
     # ルーム管理
-    resources :rooms, only: [:index, :show, :create] do
+    resources :rooms, only: [ :index, :show, :create ] do
       # メッセージ管理
-      resources :messages, only: [:index, :create]
+      resources :messages, only: [ :index, :create ]
     end
   end
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
