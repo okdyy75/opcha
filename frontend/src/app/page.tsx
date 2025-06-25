@@ -58,7 +58,7 @@ export default function Home() {
         showToast(`ルーム「${roomName}」を作成しました`, 'success');
         router.push(`/rooms/${response.data.room.id}`);
       }
-    } catch (error) {
+    } catch {
       showToast('ルーム作成に失敗しました', 'error');
     } finally {
       setIsCreating(false);
@@ -84,7 +84,7 @@ export default function Home() {
       if (response.data?.room) {
         router.push(`/rooms/${response.data.room.id}`);
       }
-    } catch (error) {
+    } catch {
       showToast('ルーム参加に失敗しました', 'error');
     } finally {
       setIsJoining(false);

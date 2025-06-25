@@ -34,7 +34,7 @@ export default function RoomsPage() {
           const chatRooms = response.data.rooms.map(room => roomToChatRoom(room));
           setRooms(chatRooms);
         }
-      } catch (error) {
+      } catch {
         showToast('ネットワークエラーが発生しました', 'error');
       } finally {
         setIsLoading(false);
@@ -66,7 +66,7 @@ export default function RoomsPage() {
         showToast(`ルーム「${roomName}」を作成しました`, 'success');
         router.push(`/rooms/${response.data.room.id}`);
       }
-    } catch (error) {
+    } catch {
       showToast('ルーム作成に失敗しました', 'error');
     } finally {
       setIsCreating(false);

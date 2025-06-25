@@ -7,7 +7,7 @@ interface ApiResponse<T> {
   error?: {
     message: string;
     code: string;
-    details?: any;
+    details?: unknown;
   };
 }
 
@@ -58,14 +58,14 @@ class ApiClient {
     nickname: string;
     data?: string;
   }) {
-    return this.request<{ session: any }>('/sessions', {
+    return this.request<{ session: { id: number; session_id: string; nickname: string; created_at: string; updated_at: string } }>('/sessions', {
       method: 'POST',
       body: JSON.stringify({ session: sessionData }),
     });
   }
 
   async updateSessionNickname(sessionId: string, nickname: string) {
-    return this.request<{ session: any }>(`/sessions/${sessionId}`, {
+    return this.request<{ session: { id: number; session_id: string; nickname: string; created_at: string; updated_at: string } }>(`/sessions/${sessionId}`, {
       method: 'PUT',
       body: JSON.stringify({ nickname }),
     });
