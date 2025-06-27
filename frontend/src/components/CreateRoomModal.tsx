@@ -6,17 +6,22 @@ import Modal from './Modal';
 interface CreateRoomModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onCreateRoom: (roomName: string) => void;
+  onCreateRoom: (roomName: string) => Promise<void>;
   isCreating?: boolean;
 }
 
 export default function CreateRoomModal({ isOpen, onClose, onCreateRoom, isCreating = false }: CreateRoomModalProps) {
   const [roomName, setRoomName] = useState('');
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (roomName.trim() && !isCreating) {
-      onCreateRoom(roomName.trim());
-      setRoomName('');
+      try {
+        await onCreateRoom(roomName.trim());
+        setRoomName('');
+      } catch (error) {
+        // エラーはonCreateRoom内でハンドリング済み
+        console.error('Room creation failed:', error);
+      }
     }
   };
 

@@ -12,6 +12,7 @@ import { ChatRoom, roomToChatRoom } from '@/types';
 export default function RoomsPage() {
   const [rooms, setRooms] = useState<ChatRoom[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
 
   const router = useRouter();
@@ -64,7 +65,8 @@ export default function RoomsPage() {
 
       if (response.data?.room) {
         showToast(`ルーム「${roomName}」を作成しました`, 'success');
-        router.push(`/rooms/${response.data.room.id}`);
+        setIsModalOpen(false);
+        router.push(`/rooms/${response.data.room.share_token}`);
       }
     } catch {
       showToast('ルーム作成に失敗しました', 'error');
@@ -90,7 +92,7 @@ export default function RoomsPage() {
             <h1 className="font-semibold text-white">ルーム一覧</h1>
           </div>
           <button
-            onClick={() => setIsCreating(true)}
+            onClick={() => setIsModalOpen(true)}
             className="bg-white/20 hover:bg-white/30 px-4 py-2 rounded-full text-sm font-medium transition-colors"
           >
             ルーム作成
@@ -163,7 +165,7 @@ export default function RoomsPage() {
               まだチャットルームがありません
             </p>
             <button
-              onClick={() => setIsCreating(true)}
+              onClick={() => setIsModalOpen(true)}
               className="bg-[var(--color-primary-500)] hover:bg-[var(--color-primary-600)] text-white px-6 py-3 rounded-full font-medium transition-colors"
             >
               最初のルームを作成
@@ -174,8 +176,8 @@ export default function RoomsPage() {
 
       {/* ルーム作成モーダル */}
       <CreateRoomModal
-        isOpen={isCreating}
-        onClose={() => setIsCreating(false)}
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
         onCreateRoom={handleCreateRoom}
         isCreating={isCreating}
       />
