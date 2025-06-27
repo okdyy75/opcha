@@ -5,64 +5,25 @@ import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import Toast from '../../../components/Toast';
 import { useToast } from '../../../hooks/useToast';
-import { useNickname } from '../../../hooks/useNickname';
-import { useSessionId } from '../../../hooks/useSessionId';
+import { useSession } from '../../../hooks/useSession';
 import NicknameModal from '../../../components/NicknameModal';
 import ShareButton from '../../../components/ShareButton';
-
-interface Message {
-  id: string;
-  text: string;
-  timestamp: string;
-  userId: string;
-  userSessionId: string; // 変更不可能なセッションID（#abc123のような形式）
-  userNickname: string; // 変更可能なニックネーム
-  isOwn: boolean;
-}
+import { apiClient } from '../../../lib/api';
+import { MessageDisplay, messageToDisplay, Room } from '../../../types';
 
 export default function ChatRoom() {
   const params = useParams();
   const roomId = params.id as string;
   
-  // TODO: roomIdを使ってバックエンドからルーム情報を取得する
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: '1',
-      text: 'こんにちは！このルームにようこそ！',
-      timestamp: '14:30',
-      userId: 'user1',
-      userSessionId: 'abc123',
-      userNickname: 'かわいいネコ123',
-      isOwn: false
-    },
-    {
-      id: '2',
-      text: 'よろしくお願いします！',
-      timestamp: '14:32',
-      userId: 'user2',
-      userSessionId: 'def456',
-      userNickname: 'げんきなイヌ456',
-      isOwn: true
-    },
-    {
-      id: '3',
-      text: '今日はいい天気ですね',
-      timestamp: '14:35',
-      userId: 'user1',
-      userSessionId: 'abc123',
-      userNickname: 'かわいいネコ123',
-      isOwn: false
-    }
-  ]);
-  
+  const [messages, setMessages] = useState<MessageDisplay[]>([]);
   const [newMessage, setNewMessage] = useState('');
-  const [roomName] = useState(`ルーム ${roomId}`);
-  const [participantCount] = useState(3);
+  const [room, setRoom] = useState<Room | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSending, setIsSending] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const { toasts, success, removeToast } = useToast();
-  const { nickname, isLoading: nicknameLoading, updateNickname } = useNickname();
-  const { sessionId, isLoading: sessionLoading } = useSessionId();
+  const { toasts, showToast, removeToast } = useToast();
+  const { nickname, sessionId, displayName, isLoading: sessionLoading, updateNickname } = useSession();
   const [isNicknameModalOpen, setIsNicknameModalOpen] = useState(false);
 
   const scrollToBottom = () => {
@@ -73,26 +34,69 @@ export default function ChatRoom() {
     scrollToBottom();
   }, [messages]);
 
-  const handleSendMessage = () => {
-    if (newMessage.trim()) {
-      const now = new Date();
-      const timestamp = now.toLocaleTimeString('ja-JP', { 
-        hour: '2-digit', 
-        minute: '2-digit' 
+  // ルーム情報とメッセージを取得
+  useEffect(() => {
+    const fetchRoomData = async () => {
+      if (!roomId) return;
+      
+      setIsLoading(true);
+      try {
+        // ルーム情報取得
+        const roomResponse = await apiClient.getRoom(roomId);
+        if (roomResponse.error) {
+          showToast('ルーム情報の取得に失敗しました', 'error');
+          return;
+        }
+        if (roomResponse.data?.room) {
+          setRoom(roomResponse.data.room);
+        }
+
+        // メッセージ一覧取得
+        const messagesResponse = await apiClient.getMessages(roomId);
+        if (messagesResponse.error) {
+          showToast('メッセージの取得に失敗しました', 'error');
+          return;
+        }
+        if (messagesResponse.data?.messages) {
+          const displayMessages = messagesResponse.data.messages.map(msg => 
+            messageToDisplay(msg)
+          );
+          setMessages(displayMessages);
+        }
+      } catch {
+        showToast('データの取得に失敗しました', 'error');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchRoomData();
+  }, [roomId, sessionId, showToast]);
+
+  const handleSendMessage = async () => {
+    if (!newMessage.trim() || !sessionId || isSending) return;
+
+    setIsSending(true);
+    
+    try {
+      const response = await apiClient.createMessage(roomId, {
+        text_body: newMessage.trim(),
       });
 
-      const message: Message = {
-        id: Date.now().toString(),
-        text: newMessage.trim(),
-        timestamp,
-        userId: 'currentUser',
-        userSessionId: sessionId,
-        userNickname: nickname,
-        isOwn: true
-      };
+      if (response.error) {
+        showToast('メッセージの送信に失敗しました', 'error');
+        return;
+      }
 
-      setMessages(prev => [...prev, message]);
-      setNewMessage('');
+      if (response.data?.message) {
+        const displayMessage = messageToDisplay(response.data.message);
+        setMessages(prev => [...prev, displayMessage]);
+        setNewMessage('');
+      }
+    } catch {
+      showToast('メッセージの送信に失敗しました', 'error');
+    } finally {
+      setIsSending(false);
     }
   };
 
@@ -115,9 +119,7 @@ export default function ChatRoom() {
     adjustTextareaHeight();
   }, [newMessage]);
 
-
-
-  if (nicknameLoading || sessionLoading) {
+  if (sessionLoading || isLoading) {
     return (
       <div className="min-h-screen bg-[var(--color-bg-secondary)] flex items-center justify-center">
         <div className="text-center">
@@ -142,17 +144,19 @@ export default function ChatRoom() {
             </svg>
           </Link>
           <div className="flex-1">
-            <h1 className="font-semibold text-white">{roomName}</h1>
+            <h1 className="font-semibold text-white">
+              {room ? room.name : `ルーム ${roomId}`}
+            </h1>
             <p className="text-xs text-white/80 flex items-center gap-1">
               <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 16 16">
                 <path d="M3 14s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1H3zm5-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/>
               </svg>
-              {participantCount}人参加中
+              {room ? `${room.participant_count}人参加中` : '読み込み中...'}
             </p>
           </div>
           <ShareButton
             roomId={roomId}
-            onSuccess={success}
+            onSuccess={(message) => showToast(message, 'success')}
             iconOnly={false}
           />
         </div>
@@ -169,8 +173,8 @@ export default function ChatRoom() {
               <div className={`max-w-[75%] ${message.isOwn ? 'order-2' : 'order-1'}`}>
                 {!message.isOwn && (
                   <div className="text-xs text-[var(--color-text-secondary)] mb-1 px-1">
-                    <span className="font-medium">{message.userNickname}</span>
-                    <span className="ml-1 opacity-70">#{message.userSessionId}</span>
+                    <span className="font-medium">{message.sessionNickname}</span>
+                    <span className="ml-1 opacity-70">#{message.sessionDisplayName}</span>
                   </div>
                 )}
                 <div
@@ -204,7 +208,7 @@ export default function ChatRoom() {
             <div className="flex items-center gap-2">
               <span className="text-xs text-[var(--color-text-secondary)]">あなた:</span>
               <span className="text-sm font-medium text-[var(--color-text-primary)]">{nickname}</span>
-              <span className="text-xs text-[var(--color-text-secondary)] opacity-70">#{sessionId}</span>
+              <span className="text-xs text-[var(--color-text-secondary)] opacity-70">#{displayName}</span>
             </div>
             <button
               onClick={() => setIsNicknameModalOpen(true)}
@@ -262,13 +266,7 @@ export default function ChatRoom() {
         isOpen={isNicknameModalOpen}
         currentNickname={nickname}
         onClose={() => setIsNicknameModalOpen(false)}
-        onUpdate={(newNickname) => {
-          const result = updateNickname(newNickname);
-          if (result) {
-            success('ニックネームを更新しました');
-          }
-          return result;
-        }}
+        onUpdate={updateNickname}
       />
     </div>
   );

@@ -3,7 +3,8 @@ Rails.application.routes.draw do
     get "hello", to: "hello#hello"
 
     # セッション管理
-    resources :sessions, only: [ :create, :update ], param: :session_id
+    get "sessions/current", to: "sessions#show"
+    put "sessions", to: "sessions#update"
 
     # ルーム管理
     resources :rooms, only: [ :index, :show, :create ] do

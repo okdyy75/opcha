@@ -2,8 +2,10 @@
 
 one:
   session_id: "session1"
+  display_name: "user01"
   nickname: "User1"
 
 two:
   session_id: "session2"
+  display_name: "user02"
   nickname: "User2"

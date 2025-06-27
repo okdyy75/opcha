@@ -22,12 +22,6 @@ class Api::MessagesController < ApplicationController
     @message = @room.messages.build(message_params)
 
     if @message.save
-      # リアルタイム配信
-      ActionCable.server.broadcast "room_#{@room.id}", {
-        type: "new_message",
-        message: message_json(@message)
-      }
-
       render json: { message: message_json(@message) }, status: :created
     else
       render json: { error: { message: @message.errors.full_messages.join(", "), code: "VALIDATION_ERROR" } }, status: :unprocessable_entity
@@ -37,13 +31,13 @@ class Api::MessagesController < ApplicationController
   private
 
   def set_room
-    @room = Room.kept.find(params[:room_id])
+    @room = Room.kept.find_by!(share_token: params[:room_id])
   rescue ActiveRecord::RecordNotFound
     render json: { error: { message: "Room not found", code: "NOT_FOUND" } }, status: :not_found
   end
 
   def message_params
-    params.require(:message).permit(:session_id, :text_body)
+    params.require(:message).permit(:text_body)
   end
 
   def message_json(message)
@@ -52,13 +46,12 @@ class Api::MessagesController < ApplicationController
     {
       id: message.id,
       room_id: message.room_id,
-      session_id: message.session_id,
       text_body: message.text_body,
       user: session ? {
         session_id: session.session_id,
         nickname: session.nickname
       } : {
-        session_id: message.session_id,
+        display_name: "unknown",
         nickname: "Unknown User"
       },
       created_at: message.created_at
