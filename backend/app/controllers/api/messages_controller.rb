@@ -22,12 +22,6 @@ class Api::MessagesController < ApplicationController
     @message = @room.messages.build(message_params)
 
     if @message.save
-      # リアルタイム配信
-      ActionCable.server.broadcast "room_#{@room.id}", {
-        type: "new_message",
-        message: message_json(@message)
-      }
-
       render json: { message: message_json(@message) }, status: :created
     else
       render json: { error: { message: @message.errors.full_messages.join(", "), code: "VALIDATION_ERROR" } }, status: :unprocessable_entity
