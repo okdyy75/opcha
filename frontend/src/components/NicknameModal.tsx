@@ -8,7 +8,7 @@ interface NicknameModalProps {
   isOpen: boolean;
   currentNickname: string;
   onClose: () => void;
-  onUpdate: (nickname: string) => boolean;
+  onUpdate: (nickname: string) => boolean | Promise<boolean>;
 }
 
 export default function NicknameModal({ 
@@ -25,7 +25,7 @@ export default function NicknameModal({
     setError('');
   }, [currentNickname, isOpen]);
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!tempNickname.trim()) {
       setError('ニックネームを入力してください');
       return;
@@ -36,7 +36,7 @@ export default function NicknameModal({
       return;
     }
 
-    const success = onUpdate(tempNickname);
+    const success = await onUpdate(tempNickname);
     if (success) {
       onClose();
     } else {

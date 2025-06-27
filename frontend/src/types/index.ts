@@ -3,12 +3,12 @@
 export interface Message {
   id: number;
   room_id: number;
-  session_id: string;
   text_body: string;
-  user: {
-    session_id: string;
+  session: {
+    display_name: string;
     nickname: string;
   };
+  is_own: boolean;
   created_at: string;
 }
 
@@ -18,6 +18,7 @@ export interface Room {
   share_token: string;
   creator_session_id: string;
   message_count: number;
+  participant_count: number;
   last_activity: string | null;
   created_at: string;
 }
@@ -25,6 +26,7 @@ export interface Room {
 export interface Session {
   id: number;
   session_id: string;
+  display_name: string;
   nickname: string;
   created_at: string;
   updated_at: string;
@@ -33,7 +35,6 @@ export interface Session {
 export interface ChatRoom {
   id: string;
   name: string;
-  lastMessage?: string;
   lastActivity: string;
   participantCount: number;
 }
@@ -42,14 +43,13 @@ export interface MessageDisplay {
   id: string;
   text: string;
   timestamp: string;
-  userId: string;
-  userSessionId: string;
-  userNickname: string;
+  sessionDisplayName: string;
+  sessionNickname: string;
   isOwn: boolean;
 }
 
 // Utility functions to convert API responses to display types
-export function messageToDisplay(message: Message, currentSessionId: string): MessageDisplay {
+export function messageToDisplay(message: Message): MessageDisplay {
   return {
     id: message.id.toString(),
     text: message.text_body,
@@ -57,10 +57,9 @@ export function messageToDisplay(message: Message, currentSessionId: string): Me
       hour: '2-digit',
       minute: '2-digit'
     }),
-    userId: message.user.session_id,
-    userSessionId: message.user.session_id,
-    userNickname: message.user.nickname,
-    isOwn: message.session_id === currentSessionId,
+    sessionDisplayName: message.session.display_name,
+    sessionNickname: message.session.nickname,
+    isOwn: message.is_own,
   };
 }
 
@@ -68,7 +67,6 @@ export function roomToChatRoom(room: Room): ChatRoom {
   return {
     id: room.share_token, // share_tokenをIDとして使用
     name: room.name,
-    lastMessage: undefined, // Will be populated separately if needed
     lastActivity: room.last_activity 
       ? new Date(room.last_activity).toLocaleString('ja-JP', {
           month: '2-digit',
@@ -82,6 +80,6 @@ export function roomToChatRoom(room: Room): ChatRoom {
           hour: '2-digit',
           minute: '2-digit'
         }),
-    participantCount: Math.max(1, room.message_count), // Placeholder
+    participantCount: room.participant_count,
   };
 }

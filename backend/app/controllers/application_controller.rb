@@ -3,8 +3,6 @@ class ApplicationController < ActionController::API
 
   private
 
-<<<<<<< HEAD
-=======
   def current_session_id
     # セッションが初期化されていない場合は新しく生成
     if !session[:_initialized]
@@ -17,7 +15,6 @@ class ApplicationController < ActionController::API
     session[:session_id]
   end
 
->>>>>>> 8bb26b1 (パフォーマンス改善)
   def handle_internal_server_error(exception)
     Rails.logger.error "Internal Server Error: #{exception.message}"
     Rails.logger.error exception.backtrace.join("\n")
