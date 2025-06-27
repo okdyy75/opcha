@@ -25,7 +25,7 @@
 |---------------------|--------------|--------------|--------------------------------------|
 | id                  | BIGINT       | PRIMARY KEY  | ルームID（自動採番）                 |
 | name                | VARCHAR(100) | NOT NULL     | ルーム名                             |
-| share_token         | VARCHAR(64)  | UNIQUE       | ルーム共有用トークン                 |
+| share_token         | VARCHAR(32)  | UNIQUE       | ルーム共有用トークン                 |
 | creator_session_id  | VARCHAR(255) | FOREIGN KEY  | 作成者のセッションID                 |
 | created_at          | TIMESTAMP    | NOT NULL     | 作成日時                             |
 | updated_at          | TIMESTAMP    | NOT NULL     | 更新日時                             |

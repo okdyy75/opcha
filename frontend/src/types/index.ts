@@ -66,7 +66,7 @@ export function messageToDisplay(message: Message, currentSessionId: string): Me
 
 export function roomToChatRoom(room: Room): ChatRoom {
   return {
-    id: room.id.toString(),
+    id: room.share_token, // share_tokenをIDとして使用
     name: room.name,
     lastMessage: undefined, // Will be populated separately if needed
     lastActivity: room.last_activity 
