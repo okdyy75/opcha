@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import CreateRoomModal from '@/components/CreateRoomModal';
-import { useSessionId } from '@/hooks/useSessionId';
 import { useToast } from '@/hooks/useToast';
 import { apiClient } from '@/lib/api';
 import { ChatRoom, roomToChatRoom } from '@/types';
@@ -16,7 +15,6 @@ export default function RoomsPage() {
   const [isCreating, setIsCreating] = useState(false);
 
   const router = useRouter();
-  const { sessionId } = useSessionId();
   const { showToast } = useToast();
 
   // ルーム一覧取得
@@ -46,16 +44,10 @@ export default function RoomsPage() {
   }, [showToast]);
 
   const handleCreateRoom = async (roomName: string) => {
-    if (!sessionId) {
-      showToast('セッションが初期化されていません', 'error');
-      return;
-    }
-
     setIsCreating(true);
     try {
       const response = await apiClient.createRoom({
         name: roomName,
-        creator_session_id: sessionId,
       });
 
       if (response.error) {
@@ -142,11 +134,6 @@ export default function RoomsPage() {
                         {room.participantCount}
                       </span>
                     </div>
-                    {room.lastMessage && (
-                      <p className="text-sm text-[var(--color-text-secondary)] truncate">
-                        {room.lastMessage}
-                      </p>
-                    )}
                   </div>
                   <div className="text-xs text-[var(--color-text-secondary)] ml-2">
                     {room.lastActivity}

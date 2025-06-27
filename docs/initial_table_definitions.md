@@ -8,6 +8,7 @@
 |---------------|--------------|--------------|--------------------------------------|
 | id            | BIGINT       | PRIMARY KEY  | セッション管理用ID（自動採番）       |
 | session_id    | VARCHAR(255) | UNIQUE       | セッションID                      |
+| display_name  | VARCHAR(32)  |              | セッション表示名（8桁英数字）        |
 | data          | TEXT         |              | セッションデータ                   |
 | ip_address    | VARCHAR(45)  |              | IPアドレス                           |
 | user_agent    | TEXT         |              | ユーザーエージェント                 |
@@ -24,9 +25,9 @@
 | カラム名             | 型           | 制約         | 説明                                 |
 |---------------------|--------------|--------------|--------------------------------------|
 | id                  | BIGINT       | PRIMARY KEY  | ルームID（自動採番）                 |
-| name                | VARCHAR(100) | NOT NULL     | ルーム名                             |
-| share_token         | VARCHAR(32)  | UNIQUE       | ルーム共有用トークン                 |
-| creator_session_id  | VARCHAR(255) | FOREIGN KEY  | 作成者のセッションID                 |
+| name                | VARCHAR(50)  | NOT NULL     | ルーム名                             |
+| share_token         | VARCHAR(32)  | UNIQUE       | ルーム共有用トークン（6桁英数字）     |
+| creator_session_id  | BIGINT       | FOREIGN KEY  | 作成者のセッションID（sessions.id）    |
 | created_at          | TIMESTAMP    | NOT NULL     | 作成日時                             |
 | updated_at          | TIMESTAMP    | NOT NULL     | 更新日時                             |
 | discarded_at        | TIMESTAMP    |              | 論理削除日時（NULLなら有効）         |
@@ -41,7 +42,7 @@
 |---------------|--------------|--------------|--------------------------------------|
 | id            | BIGINT       | PRIMARY KEY  | メッセージID（自動採番）             |
 | room_id       | BIGINT       | FOREIGN KEY  | ルームID（rooms.id）                 |
-| session_id    | VARCHAR(255) | FOREIGN KEY  | 投稿者のセッションID                 |
+| session_id    | BIGINT       | FOREIGN KEY  | 投稿者のセッションID（sessions.id）  |
 | text_body     | TEXT         | NOT NULL     | メッセージ本文                       |
 | created_at    | TIMESTAMP    | NOT NULL     | 投稿日時                             |
 | updated_at    | TIMESTAMP    | NOT NULL     | 更新日時                             |

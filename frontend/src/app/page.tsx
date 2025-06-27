@@ -1,10 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import CreateRoomModal from '@/components/CreateRoomModal';
-import { useSessionId } from '@/hooks/useSessionId';
 import { useToast } from '@/hooks/useToast';
 import { apiClient } from '@/lib/api';
 
@@ -15,38 +14,15 @@ export default function Home() {
   const [isCreating, setIsCreating] = useState(false);
   
   const router = useRouter();
-  const { sessionId, nickname } = useSessionId();
   const { showToast } = useToast();
 
-  // セッション作成・更新
-  useEffect(() => {
-    const initializeSession = async () => {
-      if (sessionId && nickname) {
-        const response = await apiClient.createSession({
-          session_id: sessionId,
-          nickname: nickname,
-        });
-        
-        if (response.error) {
-          console.warn('Session creation warning:', response.error);
-        }
-      }
-    };
-    
-    initializeSession();
-  }, [sessionId, nickname]);
+
 
   const handleCreateRoom = async (roomName: string) => {
-    if (!sessionId) {
-      showToast('セッションが初期化されていません', 'error');
-      return;
-    }
-
     setIsCreating(true);
     try {
       const response = await apiClient.createRoom({
         name: roomName,
-        creator_session_id: sessionId,
       });
 
       if (response.error) {

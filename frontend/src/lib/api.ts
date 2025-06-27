@@ -1,6 +1,6 @@
 // API client for opcha backend
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+const API_BASE_URL = ''; // Next.jsのproxyを使用するため空文字に変更
 console.log(API_BASE_URL);
 
 interface ApiResponse<T> {
@@ -27,6 +27,7 @@ class ApiClient {
     
     const config: RequestInit = {
       ...options,
+      credentials: 'include', // cookieを含める
       headers: {
         'Content-Type': 'application/json',
         ...options.headers,
@@ -58,21 +59,14 @@ class ApiClient {
   }
 
   // Session APIs
-  async createSession(sessionData: {
-    session_id: string;
-    nickname: string;
-    data?: string;
-  }) {
-    return this.request<{ session: { id: number; session_id: string; nickname: string; created_at: string; updated_at: string } }>('/sessions', {
-      method: 'POST',
-      body: JSON.stringify({ session: sessionData }),
-    });
+  async getSession() {
+    return this.request<{ session: { id: number; session_id: string; display_name: string; nickname: string; created_at: string; updated_at: string } }>('/sessions/current');
   }
 
-  async updateSessionNickname(sessionId: string, nickname: string) {
-    return this.request<{ session: { id: number; session_id: string; nickname: string; created_at: string; updated_at: string } }>(`/sessions/${sessionId}`, {
+  async updateSessionNickname(nicknameData: { nickname: string }) {
+    return this.request<{ session: { id: number; session_id: string; display_name: string; nickname: string; created_at: string; updated_at: string } }>('/sessions', {
       method: 'PUT',
-      body: JSON.stringify({ nickname }),
+      body: JSON.stringify(nicknameData),
     });
   }
 
@@ -92,6 +86,7 @@ class ApiClient {
         share_token: string;
         creator_session_id: string;
         message_count: number;
+        participant_count: number;
         last_activity: string | null;
         created_at: string;
       }>;
@@ -111,13 +106,14 @@ class ApiClient {
         share_token: string;
         creator_session_id: string;
         message_count: number;
+        participant_count: number;
         last_activity: string | null;
         created_at: string;
       };
     }>(`/rooms/${roomId}`);
   }
 
-  async createRoom(roomData: { name: string; creator_session_id: string }) {
+  async createRoom(roomData: { name: string }) {
     return this.request<{
       room: {
         id: number;
@@ -125,6 +121,7 @@ class ApiClient {
         share_token: string;
         creator_session_id: string;
         message_count: number;
+        participant_count: number;
         last_activity: string | null;
         created_at: string;
       };
@@ -147,12 +144,12 @@ class ApiClient {
       messages: Array<{
         id: number;
         room_id: number;
-        session_id: string;
         text_body: string;
-        user: {
-          session_id: string;
+        session: {
+          display_name: string;
           nickname: string;
         };
+        is_own: boolean;
         created_at: string;
       }>;
       pagination: {
@@ -162,17 +159,17 @@ class ApiClient {
     }>(endpoint);
   }
 
-  async createMessage(roomId: string, messageData: { session_id: string; text_body: string }) {
+  async createMessage(roomId: string, messageData: { text_body: string }) {
     return this.request<{
       message: {
         id: number;
         room_id: number;
-        session_id: string;
         text_body: string;
-        user: {
-          session_id: string;
+        session: {
+          display_name: string;
           nickname: string;
         };
+        is_own: boolean;
         created_at: string;
       };
     }>(`/rooms/${roomId}/messages`, {
