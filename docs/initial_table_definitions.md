@@ -8,6 +8,7 @@
 |---------------|--------------|--------------|--------------------------------------|
 | id            | BIGINT       | PRIMARY KEY  | セッション管理用ID（自動採番）       |
 | session_id    | VARCHAR(255) | UNIQUE       | セッションID                      |
+| display_name  | VARCHAR(32)  |              | セッション表示名（8桁英数字）        |
 | data          | TEXT         |              | セッションデータ                   |
 | ip_address    | VARCHAR(45)  |              | IPアドレス                           |
 | user_agent    | TEXT         |              | ユーザーエージェント                 |
@@ -41,7 +42,7 @@
 |---------------|--------------|--------------|--------------------------------------|
 | id            | BIGINT       | PRIMARY KEY  | メッセージID（自動採番）             |
 | room_id       | BIGINT       | FOREIGN KEY  | ルームID（rooms.id）                 |
-| session_id    | VARCHAR(255) | FOREIGN KEY  | 投稿者のセッションID                 |
+| session_id    | BIGINT       | FOREIGN KEY  | 投稿者のセッションID（sessions.id）  |
 | text_body     | TEXT         | NOT NULL     | メッセージ本文                       |
 | created_at    | TIMESTAMP    | NOT NULL     | 投稿日時                             |
 | updated_at    | TIMESTAMP    | NOT NULL     | 更新日時                             |

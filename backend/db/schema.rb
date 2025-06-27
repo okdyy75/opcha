@@ -16,7 +16,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_25_090257) do
 
   create_table "messages", force: :cascade do |t|
     t.bigint "room_id", null: false
-    t.string "session_id", limit: 255, null: false
+    t.bigint "session_id", null: false
     t.text "text_body", null: false
     t.datetime "discarded_at", precision: nil
     t.datetime "created_at", null: false
@@ -29,8 +29,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_25_090257) do
 
   create_table "rooms", force: :cascade do |t|
     t.string "name", limit: 100, null: false
-    t.string "share_token", limit: 64
-    t.string "creator_session_id", limit: 255
+    t.string "share_token", limit: 32, null: false
+    t.bigint "creator_session_id"
     t.datetime "discarded_at", precision: nil
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
@@ -41,6 +41,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_25_090257) do
 
   create_table "sessions", force: :cascade do |t|
     t.string "session_id", limit: 255, null: false
+    t.string "display_name", limit: 32
     t.text "data"
     t.string "ip_address", limit: 45
     t.text "user_agent"
@@ -52,4 +53,6 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_25_090257) do
   end
 
   add_foreign_key "messages", "rooms"
+  add_foreign_key "messages", "sessions"
+  add_foreign_key "rooms", "sessions", column: "creator_session_id"
 end

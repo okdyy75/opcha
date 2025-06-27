@@ -29,6 +29,7 @@ class Api::RoomsController < ApplicationController
 
   def create
     @room = Room.new(room_params)
+    @room.creator_session_id = @session.id
 
     if @room.save
       render json: { room: room_json(@room) }, status: :created
@@ -40,25 +41,24 @@ class Api::RoomsController < ApplicationController
   private
 
   def set_room
-    @room = Room.kept.find(params[:id])
+    @room = Room.kept.find_by!(share_token: params[:id])
   rescue ActiveRecord::RecordNotFound
     render json: { error: { message: "Room not found", code: "NOT_FOUND" } }, status: :not_found
   end
 
   def room_params
-    params.require(:room).permit(:name, :creator_session_id)
+    params.require(:room).permit(:name)
   end
 
-  def room_json(room)
-    last_message = room.messages.kept.order(created_at: :desc).first
-
+  def room_json(room, message_counts, session_counts, last_message_ats)
     {
       id: room.id,
       name: room.name,
       share_token: room.share_token,
       creator_session_id: room.creator_session_id,
-      message_count: room.messages.kept.count,
-      last_activity: last_message&.created_at,
+      message_count: message_counts[room.id] || 0,
+      participant_count: session_counts[room.id] || 0,
+      last_activity: last_message_ats[room.id] || nil,
       created_at: room.created_at
     }
   end

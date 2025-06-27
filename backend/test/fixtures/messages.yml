@@ -2,10 +2,10 @@
 
 one:
   room: one
-  session_id: "session1"
+  session: one
   text_body: "Hello World"
 
 two:
   room: two
-  session_id: "session2"
+  session: two
   text_body: "Hello Again"

@@ -37,13 +37,13 @@ class Api::MessagesController < ApplicationController
   private
 
   def set_room
-    @room = Room.kept.find(params[:room_id])
+    @room = Room.kept.find_by!(share_token: params[:room_id])
   rescue ActiveRecord::RecordNotFound
     render json: { error: { message: "Room not found", code: "NOT_FOUND" } }, status: :not_found
   end
 
   def message_params
-    params.require(:message).permit(:session_id, :text_body)
+    params.require(:message).permit(:text_body)
   end
 
   def message_json(message)
@@ -52,13 +52,12 @@ class Api::MessagesController < ApplicationController
     {
       id: message.id,
       room_id: message.room_id,
-      session_id: message.session_id,
       text_body: message.text_body,
       user: session ? {
         session_id: session.session_id,
         nickname: session.nickname
       } : {
-        session_id: message.session_id,
+        display_name: "unknown",
         nickname: "Unknown User"
       },
       created_at: message.created_at
