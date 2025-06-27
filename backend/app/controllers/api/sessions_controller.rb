@@ -1,5 +1,9 @@
 class Api::SessionsController < ApplicationController
+<<<<<<< HEAD
   before_action :set_session, only: [ :update ]
+=======
+  before_action :set_session
+>>>>>>> 8bb26b1 (パフォーマンス改善)
 
   def create
     @session = Session.find_or_initialize_by(session_id: session_params[:session_id])
@@ -26,7 +30,11 @@ class Api::SessionsController < ApplicationController
   private
 
   def set_session
+<<<<<<< HEAD
     @session = Session.find_by!(session_id: params[:session_id])
+=======
+    @session = Session.find_by_raw_session_id(current_session_id)
+>>>>>>> 8bb26b1 (パフォーマンス改善)
   rescue ActiveRecord::RecordNotFound
     render json: { error: { message: "Session not found", code: "NOT_FOUND" } }, status: :not_found
   end

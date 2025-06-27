@@ -1,4 +1,5 @@
 class Api::MessagesController < ApplicationController
+  before_action :set_session
   before_action :set_room
 
   def index
@@ -20,6 +21,7 @@ class Api::MessagesController < ApplicationController
 
   def create
     @message = @room.messages.build(message_params)
+    @message.session_id = @session.id
 
     if @message.save
       # リアルタイム配信
@@ -36,6 +38,10 @@ class Api::MessagesController < ApplicationController
 
   private
 
+  def set_session
+    @session = Session.find_by_raw_session_id(current_session_id)
+  end
+
   def set_room
     @room = Room.kept.find(params[:room_id])
   rescue ActiveRecord::RecordNotFound
@@ -47,20 +53,19 @@ class Api::MessagesController < ApplicationController
   end
 
   def message_json(message)
-    session = message.session
-
     {
       id: message.id,
       room_id: message.room_id,
       session_id: message.session_id,
       text_body: message.text_body,
-      user: session ? {
-        session_id: session.session_id,
-        nickname: session.nickname
+      session: message.session ? {
+        display_name: message.session.display_name,
+        nickname: message.session.nickname
       } : {
         session_id: message.session_id,
         nickname: "Unknown User"
       },
+      is_own: message.session.id == @session.id,
       created_at: message.created_at
     }
   end
