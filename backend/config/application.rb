@@ -32,5 +32,6 @@ module Backend
     config.session_store :active_record_store, key: "_app_session", expire_after: 24.hour
     config.middleware.use ActionDispatch::Cookies
     config.middleware.use ActionDispatch::Session::ActiveRecordStore
+    config.middleware.use Rack::Attack
   end
 end

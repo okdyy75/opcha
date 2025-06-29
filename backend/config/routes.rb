@@ -9,7 +9,7 @@ Rails.application.routes.draw do
     # ルーム管理
     resources :rooms, only: [ :index, :show, :create ] do
       # メッセージ管理
-      resources :messages, only: [ :index, :create ]
+      resources :messages, only: [ :index, :create, :destroy ]
     end
   end
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
