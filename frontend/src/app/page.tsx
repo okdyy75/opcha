@@ -2,28 +2,69 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import CreateRoomModal from '@/components/CreateRoomModal';
+import { useToast } from '@/hooks/useToast';
+import { apiClient } from '@/lib/api';
 
 export default function Home() {
   const [roomId, setRoomId] = useState('');
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [isJoining, setIsJoining] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);
+  
+  const router = useRouter();
+  const { showToast } = useToast();
 
-  const handleCreateRoom = (roomName: string) => {
-    // TODO: バックエンドAPI呼び出し
-    const newRoomId = Math.random().toString(36).substring(2, 9);
-    console.log('新しいルーム作成:', { name: roomName, id: newRoomId });
-    // ルーム作成後、そのルームに移動
-    window.location.href = `/rooms/${newRoomId}`;
+
+
+  const handleCreateRoom = async (roomName: string) => {
+    setIsCreating(true);
+    try {
+      const response = await apiClient.createRoom({
+        name: roomName,
+      });
+
+      if (response.error) {
+        showToast(response.error.message, 'error');
+        return;
+      }
+
+      if (response.data?.room) {
+        showToast(`ルーム「${roomName}」を作成しました`, 'success');
+        router.push(`/rooms/${response.data.room.share_token}`);
+      }
+    } catch {
+      showToast('ルーム作成に失敗しました', 'error');
+    } finally {
+      setIsCreating(false);
+    }
   };
 
   const handleJoinRoom = async () => {
     if (!roomId.trim()) return;
+    
     setIsJoining(true);
-    // TODO: ルーム存在確認API呼び出し
-    setTimeout(() => {
-      window.location.href = `/rooms/${roomId.trim()}`;
-    }, 500);
+    try {
+      const response = await apiClient.getRoom(roomId.trim());
+
+      if (response.error) {
+        if (response.error.code === 'NOT_FOUND') {
+          showToast('ルームが見つかりません', 'error');
+        } else {
+          showToast(response.error.message, 'error');
+        }
+        return;
+      }
+
+      if (response.data?.room) {
+        router.push(`/rooms/${response.data.room.share_token}`);
+      }
+    } catch {
+      showToast('ルーム参加に失敗しました', 'error');
+    } finally {
+      setIsJoining(false);
+    }
   };
 
   return (
@@ -67,9 +108,10 @@ export default function Home() {
               <h3 className="font-medium text-[var(--color-text-primary)] mb-3">新しいルームを作成</h3>
               <button
                 onClick={() => setShowCreateModal(true)}
-                className="w-full bg-[var(--color-primary-500)] hover:bg-[var(--color-primary-600)] text-white py-3 px-4 rounded-lg font-medium transition-colors"
+                disabled={isCreating}
+                className="w-full bg-[var(--color-primary-500)] hover:bg-[var(--color-primary-600)] text-white py-3 px-4 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                ルームを作成する
+                {isCreating ? 'ルーム作成中...' : 'ルームを作成する'}
               </button>
             </div>
 
@@ -125,6 +167,7 @@ export default function Home() {
         isOpen={showCreateModal}
         onClose={() => setShowCreateModal(false)}
         onCreateRoom={handleCreateRoom}
+        isCreating={isCreating}
       />
     </div>
   );

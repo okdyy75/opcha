@@ -6,16 +6,22 @@ import Modal from './Modal';
 interface CreateRoomModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onCreateRoom: (roomName: string) => void;
+  onCreateRoom: (roomName: string) => Promise<void>;
+  isCreating?: boolean;
 }
 
-export default function CreateRoomModal({ isOpen, onClose, onCreateRoom }: CreateRoomModalProps) {
+export default function CreateRoomModal({ isOpen, onClose, onCreateRoom, isCreating = false }: CreateRoomModalProps) {
   const [roomName, setRoomName] = useState('');
 
-  const handleSubmit = () => {
-    if (roomName.trim()) {
-      onCreateRoom(roomName.trim());
-      setRoomName('');
+  const handleSubmit = async () => {
+    if (roomName.trim() && !isCreating) {
+      try {
+        await onCreateRoom(roomName.trim());
+        setRoomName('');
+      } catch (error) {
+        // エラーはonCreateRoom内でハンドリング済み
+        console.error('Room creation failed:', error);
+      }
     }
   };
 
@@ -62,10 +68,10 @@ export default function CreateRoomModal({ isOpen, onClose, onCreateRoom }: Creat
         </button>
         <button
           onClick={handleSubmit}
-          disabled={!roomName.trim()}
+          disabled={!roomName.trim() || isCreating}
           className="flex-1 py-3 bg-[var(--color-primary-500)] hover:bg-[var(--color-primary-600)] text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          作成
+          {isCreating ? '作成中...' : '作成'}
         </button>
       </div>
     </Modal>

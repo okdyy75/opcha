@@ -1,0 +1,11 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  name: "Room 1"
+  share_token: "token1"
+  creator_session: one
+
+two:
+  name: "Room 2"
+  share_token: "token2"
+  creator_session: two
