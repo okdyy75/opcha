@@ -6,20 +6,27 @@ import { useParams } from 'next/navigation';
 import Toast from '../../../components/Toast';
 import { useToast } from '../../../hooks/useToast';
 import { useSession } from '../../../hooks/useSession';
+import { useMessages } from '../../../hooks/useMessages';
 import NicknameModal from '../../../components/NicknameModal';
 import ShareButton from '../../../components/ShareButton';
 import { apiClient } from '../../../lib/api';
-import { MessageDisplay, messageToDisplay, Room } from '../../../types';
+import { MessageDisplay, messageToDisplay, Room, Message } from '../../../types';
 
 export default function ChatRoom() {
   const params = useParams();
   const roomId = params.id as string;
   
-  const [messages, setMessages] = useState<MessageDisplay[]>([]);
+  const [initialMessages, setInitialMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [room, setRoom] = useState<Room | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSending, setIsSending] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState<number | null>(null);
+  
+  const { messages, loadMoreMessages, hasMore, loading: messagesLoading, deleteMessage } = useMessages({
+    roomId,
+    initialMessages
+  });
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { toasts, showToast, removeToast } = useToast();
@@ -33,6 +40,22 @@ export default function ChatRoom() {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  const handleDeleteMessage = async (messageId: number) => {
+    try {
+      await deleteMessage(messageId);
+      showToast('メッセージを削除しました', 'success');
+    } catch {
+      showToast('メッセージの削除に失敗しました', 'error');
+    } finally {
+      setShowDeleteConfirm(null);
+    }
+  };
+
+  const handleLoadMore = async () => {
+    if (messagesLoading || !hasMore) return;
+    await loadMoreMessages();
+  };
 
   // ルーム情報とメッセージを取得
   useEffect(() => {
@@ -58,10 +81,7 @@ export default function ChatRoom() {
           return;
         }
         if (messagesResponse.data?.messages) {
-          const displayMessages = messagesResponse.data.messages.map(msg => 
-            messageToDisplay(msg)
-          );
-          setMessages(displayMessages);
+          setInitialMessages(messagesResponse.data.messages);
         }
       } catch {
         showToast('データの取得に失敗しました', 'error');
@@ -89,8 +109,6 @@ export default function ChatRoom() {
       }
 
       if (response.data?.message) {
-        const displayMessage = messageToDisplay(response.data.message);
-        setMessages(prev => [...prev, displayMessage]);
         setNewMessage('');
       }
     } catch {
@@ -165,37 +183,65 @@ export default function ChatRoom() {
       {/* メッセージ表示エリア */}
       <div className="flex-1 max-w-md mx-auto w-full bg-white overflow-y-auto">
         <div className="p-4 space-y-4">
-          {messages.map((message) => (
+          {/* 過去メッセージ読み込みボタン */}
+          {hasMore && (
+            <div className="text-center">
+              <button
+                onClick={handleLoadMore}
+                disabled={messagesLoading}
+                className="text-sm text-[var(--color-primary-500)] hover:text-[var(--color-primary-600)] disabled:opacity-50"
+              >
+                {messagesLoading ? '読み込み中...' : '過去のメッセージを読み込む'}
+              </button>
+            </div>
+          )}
+          {messages.map((message) => {
+            const displayMessage = messageToDisplay(message);
+            return (
             <div
               key={message.id}
-              className={`flex ${message.isOwn ? 'justify-end' : 'justify-start'}`}
+              className={`flex ${displayMessage.isOwn ? 'justify-end' : 'justify-start'}`}
             >
-              <div className={`max-w-[75%] ${message.isOwn ? 'order-2' : 'order-1'}`}>
-                {!message.isOwn && (
+              <div className={`max-w-[75%] ${displayMessage.isOwn ? 'order-2' : 'order-1'}`}>
+                {!displayMessage.isOwn && (
                   <div className="text-xs text-[var(--color-text-secondary)] mb-1 px-1">
-                    <span className="font-medium">{message.sessionNickname}</span>
-                    <span className="ml-1 opacity-70">#{message.sessionDisplayName}</span>
+                    <span className="font-medium">{displayMessage.sessionNickname}</span>
+                    <span className="ml-1 opacity-70">#{displayMessage.sessionDisplayName}</span>
                   </div>
                 )}
-                <div
-                  className={`inline-block p-3 rounded-2xl max-w-full break-words text-sm ${
-                    message.isOwn 
-                      ? 'bg-[var(--color-message-self-bg)] text-[var(--color-message-self-text)]'
-                      : 'bg-[var(--color-message-other-bg)] text-[var(--color-message-other-text)] border border-[var(--color-border-primary)]'
-                  }`}
-                >
-                  <p className="text-sm leading-relaxed whitespace-pre-wrap">
-                    {message.text}
-                  </p>
+                <div className="relative group">
+                  <div
+                    className={`inline-block p-3 rounded-2xl max-w-full break-words text-sm ${
+                      displayMessage.isOwn 
+                        ? 'bg-[var(--color-message-self-bg)] text-[var(--color-message-self-text)]'
+                        : 'bg-[var(--color-message-other-bg)] text-[var(--color-message-other-text)] border border-[var(--color-border-primary)]'
+                    }`}
+                  >
+                    <p className="text-sm leading-relaxed whitespace-pre-wrap">
+                      {displayMessage.text}
+                    </p>
+                  </div>
+                  {displayMessage.isOwn && (
+                    <button
+                      onClick={() => setShowDeleteConfirm(message.id)}
+                      className="absolute top-0 right-0 -mr-8 opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-red-100 rounded-full"
+                      title="メッセージを削除"
+                    >
+                      <svg className="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                    </button>
+                  )}
                 </div>
                 <div className={`text-xs text-[var(--color-text-secondary)] mt-1 px-1 ${
-                  message.isOwn ? 'text-right' : 'text-left'
+                  displayMessage.isOwn ? 'text-right' : 'text-left'
                 }`}>
-                  <div>{message.timestamp}</div>
+                  <div>{displayMessage.timestamp}</div>
                 </div>
               </div>
             </div>
-          ))}
+            );
+          })}
         </div>
         <div ref={messagesEndRef} />
       </div>
@@ -268,6 +314,30 @@ export default function ChatRoom() {
         onClose={() => setIsNicknameModalOpen(false)}
         onUpdate={updateNickname}
       />
+
+      {/* 削除確認モーダル */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-sm mx-4">
+            <h3 className="text-lg font-semibold mb-4">メッセージを削除しますか？</h3>
+            <p className="text-sm text-gray-600 mb-6">この操作は取り消せません。</p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowDeleteConfirm(null)}
+                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+              >
+                キャンセル
+              </button>
+              <button
+                onClick={() => handleDeleteMessage(showDeleteConfirm)}
+                className="flex-1 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
+              >
+                削除
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 } 
