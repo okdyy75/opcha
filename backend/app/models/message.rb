@@ -1,7 +1,7 @@
 class Message < ApplicationRecord
   include Discard::Model
 
-  validates :text_body, presence: true
+  validates :text_body, presence: true, length: { maximum: 1000 }
 
   belongs_to :room
   belongs_to :session

@@ -14,8 +14,9 @@ class Api::SessionsController < ApplicationController
 
   def set_session
     @session = Session.find_by_raw_session_id(current_session_id)
-  rescue ActiveRecord::RecordNotFound
-    render json: { error: { message: "Session not found", code: "NOT_FOUND" } }, status: :not_found
+    if @session.nil?
+      render json: { error: { message: "Session not found", code: "NOT_FOUND" } }, status: :not_found
+    end
   end
 
   def session_params

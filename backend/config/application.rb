@@ -32,5 +32,16 @@ module Backend
     config.session_store :active_record_store, key: "_app_session", expire_after: 24.hour
     config.middleware.use ActionDispatch::Cookies
     config.middleware.use ActionDispatch::Session::ActiveRecordStore
+
+    # CORS設定
+    config.middleware.insert_before 0, Rack::Cors do
+      allow do
+        origins "http://localhost:3000", "http://localhost:5173"
+        resource "*",
+          headers: :any,
+          methods: [ :get, :post, :put, :patch, :delete, :options, :head ],
+          credentials: true
+      end
+    end
   end
 end
