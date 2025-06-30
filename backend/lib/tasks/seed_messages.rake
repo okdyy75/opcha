@@ -5,12 +5,16 @@ namespace :db do
       puts "Creating rooms with many messages for testing..."
 
       # テスト用セッションを作成
-      test_session = Session.find_by(session_id: 'test_session_messages')
-      unless test_session
+      test_session_id = 'test_session_messages'
+      test_session = Session.find_by_raw_session_id(test_session_id)
+      if test_session.nil?
+        session_id_object = Rack::Session::SessionId.new(test_session_id)
         test_session = Session.new(
-          session_id: 'test_session_messages',
+          session_id: session_id_object.private_id,
           nickname: 'メッセージテスター',
-          display_name: 'MSG001'
+          display_name: 'MSG001',
+          ip_address: '127.0.0.1',
+          user_agent: 'Seed Generator'
         )
         # データを設定してからsave
         test_session.data = {}
@@ -22,12 +26,15 @@ namespace :db do
       test_users = []
       5.times do |i|
         user_session_id = "test_user_#{i}"
-        user = Session.find_by(session_id: user_session_id)
+        user = Session.find_by_raw_session_id(user_session_id)
         unless user
+          session_id_object = Rack::Session::SessionId.new(user_session_id)
           user = Session.new(
-            session_id: user_session_id,
-            nickname: "ユーザー#{i + 1}",
-            display_name: "USR#{sprintf('%03d', i + 1)}"
+            session_id: session_id_object.private_id,
+            nickname: "テストユーザー#{i + 1}",
+            display_name: "USR#{sprintf('%03d', i + 1)}",
+            ip_address: '127.0.0.1',
+            user_agent: 'Seed Generator'
           )
           # データを設定してからsave
           user.data = {}
