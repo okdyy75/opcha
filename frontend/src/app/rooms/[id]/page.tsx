@@ -87,8 +87,8 @@ export default function ChatRoom() {
       }
 
       if (response.data?.message) {
-        // 新着メッセージを追加（最新50件に制限）
-        setMessages(prev => [...prev, response.data!.message].slice(-50));
+        // 新着メッセージを追加（最新20件に制限）
+        setMessages(prev => [...prev, response.data!.message].slice(-20));
         setNewMessage('');
       }
     } catch {

@@ -6,7 +6,7 @@ class Api::MessagesController < ApplicationController
     @messages = @room.messages.kept
                      .includes(:session)
                      .order(created_at: :desc)
-                     .limit(50)
+                     .limit(20)
 
     render json: {
       messages: @messages.reverse.map { |message| message_json(message) }
