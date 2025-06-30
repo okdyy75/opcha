@@ -9,6 +9,8 @@ export function useSession() {
   const [sessionId, setSessionId] = useState<string>('');
   const [displayName, setDisplayName] = useState<string>('');
   const [isLoading, setIsLoading] = useState(true);
+  const [expiresAt, setExpiresAt] = useState<Date | null>(null);
+  const [isExpired, setIsExpired] = useState(false);
 
   // セッション情報を取得
   const fetchSession = useCallback(async () => {
@@ -42,9 +44,19 @@ export function useSession() {
         // セッションIDとdisplay_nameも設定
         setSessionId(data.session.session_id);
         setDisplayName(data.session.display_name);
+        
+        // セッション期限情報を設定
+        if (data.session.expires_at) {
+          setExpiresAt(new Date(data.session.expires_at));
+        }
+        setIsExpired(!data.session.active);
       }
     } catch (error) {
       console.error('セッション情報の取得中にエラーが発生しました:', error);
+      // セッションエラーの場合は期限切れフラグを設定
+      if (error instanceof Error && error.message.includes('SESSION_EXPIRED')) {
+        setIsExpired(true);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -54,6 +66,41 @@ export function useSession() {
   useEffect(() => {
     fetchSession();
   }, [fetchSession]);
+
+  // セッション期限の監視
+  useEffect(() => {
+    if (!expiresAt) return;
+
+    const checkExpiry = () => {
+      const now = new Date();
+      if (now >= expiresAt) {
+        setIsExpired(true);
+      }
+    };
+
+    // 初回チェック
+    checkExpiry();
+
+    // 1分ごとにチェック
+    const interval = setInterval(checkExpiry, 60000);
+    
+    return () => clearInterval(interval);
+  }, [expiresAt]);
+
+  // セッション期限が近い場合の警告
+  const getSessionWarning = useCallback(() => {
+    if (!expiresAt || isExpired) return null;
+    
+    const now = new Date();
+    const timeLeft = expiresAt.getTime() - now.getTime();
+    const hoursLeft = Math.floor(timeLeft / (1000 * 60 * 60));
+    
+    if (hoursLeft <= 24 && hoursLeft > 0) {
+      return `セッションの有効期限まで${hoursLeft}時間です`;
+    }
+    
+    return null;
+  }, [expiresAt, isExpired]);
 
   // ニックネームを更新
   const updateNickname = useCallback(async (newNickname: string) => {
@@ -101,5 +148,8 @@ export function useSession() {
     isLoading,
     updateNickname,
     regenerateNickname,
+    expiresAt,
+    isExpired,
+    getSessionWarning,
   };
 } 

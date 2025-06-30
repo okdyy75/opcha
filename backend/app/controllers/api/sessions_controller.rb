@@ -2,6 +2,8 @@ class Api::SessionsController < ApplicationController
   before_action :set_session
 
   def show
+    # セッションアクセス時刻を更新
+    @session.touch_last_access!
     render json: { session: session_json(@session) }
   end
 
@@ -14,6 +16,16 @@ class Api::SessionsController < ApplicationController
 
   def set_session
     @session = Session.find_by_raw_session_id(current_session_id)
+    
+    if @session.nil?
+      render json: { error: { message: "Session not found or expired", code: "SESSION_EXPIRED" } }, status: :unauthorized
+      return
+    end
+    
+    if @session.expired?
+      render json: { error: { message: "Session expired", code: "SESSION_EXPIRED" } }, status: :unauthorized
+      return
+    end
   rescue ActiveRecord::RecordNotFound
     render json: { error: { message: "Session not found", code: "NOT_FOUND" } }, status: :not_found
   end
@@ -29,7 +41,9 @@ class Api::SessionsController < ApplicationController
       display_name: session.display_name,
       nickname: session.nickname,
       created_at: session.created_at,
-      updated_at: session.updated_at
+      updated_at: session.updated_at,
+      expires_at: session.updated_at + Session::EXPIRY_TIME,
+      active: session.active?
     }
   end
 end
