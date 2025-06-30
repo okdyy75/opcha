@@ -8,6 +8,7 @@ class ApplicationController < ActionController::API
     if !session[:_initialized]
       session[:_initialized] = true
       logger.info("session initialized: #{session[:session_id]}")
+      @session = Session.find_by_raw_session_id(session[:session_id])
       @session.update!(ip_address: request.remote_ip, user_agent: request.user_agent)
     end
 

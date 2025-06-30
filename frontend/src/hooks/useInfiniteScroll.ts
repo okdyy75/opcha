@@ -57,6 +57,7 @@ export function useInfiniteScroll({ initialRooms }: UseInfiniteScrollProps): Use
         setHasMore(false);
       }
     } catch (error) {
+      console.error('ルーム一覧の無限スクロールのロードに失敗しました', error);
       setHasMore(false);
     } finally {
       setLoading(false);

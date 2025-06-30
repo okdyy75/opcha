@@ -18,7 +18,7 @@ export default function RoomsPage() {
   const router = useRouter();
   const { showToast } = useToast();
   
-  const { rooms, hasMore, loading: loadingMore, loadMore, lastElementRef } = useInfiniteScroll({
+  const { rooms, loading: loadingMore, lastElementRef } = useInfiniteScroll({
     initialRooms
   });
 
@@ -36,6 +36,7 @@ export default function RoomsPage() {
 
         setInitialRooms(response.data?.rooms || []);
       } catch (error) {
+        console.error('ネットワークエラーが発生しました', error);
         showToast('ネットワークエラーが発生しました', 'error');
       } finally {
         setIsLoading(false);
