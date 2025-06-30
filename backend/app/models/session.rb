@@ -14,15 +14,23 @@ class Session < ActiveRecord::SessionStore::Session
     where(session_id: private_session_id).first
   end
 
-  # ActiveRecord::SessionStore::Sessionでは、dataにアクセスしてloaded状態にする必要がある
+  # ActiveRecord::SessionStore::Sessionでは、新規作成・更新時にdataにアクセスしてloaded状態にする必要がある
+  def save(...)
+    data unless loaded?
+    super
+  end
+
+  def save!(...)
+    data unless loaded?
+    super
+  end
+
   def update(...)
-    # loaded状態にするためにdataにアクセスすることでthrow :abortされなくなる
     data unless loaded?
     super
   end
 
   def update!(...)
-    # loaded状態にするためにdataにアクセスすることでthrow :abortされなくなる
     data unless loaded?
     super
   end

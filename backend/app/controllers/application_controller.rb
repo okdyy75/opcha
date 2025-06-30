@@ -8,8 +8,18 @@ class ApplicationController < ActionController::API
     if !session[:_initialized]
       session[:_initialized] = true
       logger.info("session initialized: #{session[:session_id]}")
+      
+      # セッションが存在しない場合は作成
       @session = Session.find_by_raw_session_id(session[:session_id])
-      @session.update!(ip_address: request.remote_ip, user_agent: request.user_agent)
+      if @session.nil?
+        @session = Session.create!(
+          session_id: Rack::Session::SessionId.new(session[:session_id]).private_id,
+          ip_address: request.remote_ip,
+          user_agent: request.user_agent
+        )
+      else
+        @session.update!(ip_address: request.remote_ip, user_agent: request.user_agent)
+      end
     end
 
     session[:session_id]

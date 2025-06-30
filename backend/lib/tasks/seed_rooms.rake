@@ -5,11 +5,18 @@ namespace :db do
       puts "Creating random rooms for testing..."
 
       # テスト用セッションを作成
-      test_session = Session.find_or_create_by!(session_id: 'test_session_001') do |session|
-        session.nickname = 'テストユーザー'
-        session.display_name = 'TEST001'
-        session.ip_address = '127.0.0.1'
-        session.user_agent = 'Seed Generator'
+      test_session_id = 'test_session_001'
+      test_session = Session.find_by_raw_session_id(test_session_id)
+      
+      if test_session.nil?
+        session_id_object = Rack::Session::SessionId.new(test_session_id)
+        test_session = Session.create!(
+          session_id: session_id_object.private_id,
+          nickname: 'テストユーザー',
+          display_name: 'TEST001',
+          ip_address: '127.0.0.1',
+          user_agent: 'Seed Generator'
+        )
       end
 
       # ランダムなルーム名のパターン

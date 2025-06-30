@@ -46,6 +46,15 @@ class Api::RoomsController < ApplicationController
 
   def set_session
     @session = Session.find_by_raw_session_id(current_session_id)
+    
+    # セッションが見つからない場合は新規作成
+    if @session.nil?
+      @session = Session.create!(
+        session_id: Rack::Session::SessionId.new(current_session_id).private_id,
+        ip_address: request.remote_ip,
+        user_agent: request.user_agent
+      )
+    end
   end
 
   def set_room
