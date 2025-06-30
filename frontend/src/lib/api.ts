@@ -132,14 +132,7 @@ class ApiClient {
   }
 
   // Message APIs
-  async getMessages(roomId: string, params?: { limit?: number; before?: number }) {
-    const searchParams = new URLSearchParams();
-    if (params?.limit) searchParams.append('limit', params.limit.toString());
-    if (params?.before) searchParams.append('before', params.before.toString());
-    
-    const query = searchParams.toString();
-    const endpoint = query ? `/rooms/${roomId}/messages?${query}` : `/rooms/${roomId}/messages`;
-    
+  async getMessages(roomId: string) {
     return this.request<{
       messages: Array<{
         id: number;
@@ -152,11 +145,7 @@ class ApiClient {
         is_own: boolean;
         created_at: string;
       }>;
-      pagination: {
-        has_more: boolean;
-        next_before: number | null;
-      };
-    }>(endpoint);
+    }>(`/rooms/${roomId}/messages`);
   }
 
   async createMessage(roomId: string, messageData: { text_body: string }) {
