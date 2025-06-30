@@ -9,7 +9,8 @@ import { useSession } from '../../../hooks/useSession';
 import NicknameModal from '../../../components/NicknameModal';
 import ShareButton from '../../../components/ShareButton';
 import { apiClient } from '../../../lib/api';
-import { MessageDisplay, messageToDisplay, Room } from '../../../types';
+import { getPusher } from '../../../lib/pusher';
+import { MessageDisplay, messageToDisplay, Room, Message } from '../../../types';
 
 export default function ChatRoom() {
   const params = useParams();
@@ -73,14 +74,53 @@ export default function ChatRoom() {
     fetchRoomData();
   }, [roomId, sessionId, showToast]);
 
+  // Pusherリアルタイム通信の設定
+  useEffect(() => {
+    if (!roomId) return;
+
+    const pusher = getPusher();
+    const channel = pusher.subscribe(`room-${roomId}`);
+
+    channel.bind('new-message', (data: { message: Message }) => {
+      const displayMessage = messageToDisplay(data.message);
+      setMessages(prev => {
+        // 重複メッセージを防ぐ
+        const exists = prev.some(msg => msg.id === displayMessage.id);
+        if (exists) return prev;
+        return [...prev, displayMessage];
+      });
+    });
+
+    // クリーンアップ
+    return () => {
+      channel.unbind_all();
+      pusher.unsubscribe(`room-${roomId}`);
+    };
+  }, [roomId]);
+
   const handleSendMessage = async () => {
     if (!newMessage.trim() || !sessionId || isSending) return;
+
+    // クライアント側バリデーション
+    const trimmedMessage = newMessage.trim();
+    
+    // 文字数制限チェック
+    if (trimmedMessage.length > 1000) {
+      showToast('メッセージが長すぎます（1000文字以内）', 'error');
+      return;
+    }
+
+    // 空白のみのメッセージをチェック
+    if (trimmedMessage.length === 0) {
+      showToast('メッセージを入力してください', 'error');
+      return;
+    }
 
     setIsSending(true);
     
     try {
       const response = await apiClient.createMessage(roomId, {
-        text_body: newMessage.trim(),
+        text_body: trimmedMessage,
       });
 
       if (response.error) {
@@ -88,9 +128,8 @@ export default function ChatRoom() {
         return;
       }
 
+      // リアルタイムでメッセージが追加されるため、手動でのstate更新は不要
       if (response.data?.message) {
-        const displayMessage = messageToDisplay(response.data.message);
-        setMessages(prev => [...prev, displayMessage]);
         setNewMessage('');
       }
     } catch {
@@ -232,10 +271,21 @@ export default function ChatRoom() {
                 onChange={(e) => setNewMessage(e.target.value)}
                 onKeyPress={handleKeyPress}
                 placeholder="メッセージを入力..."
-                className="w-full p-3 pr-12 border border-[var(--color-border-primary)] rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-500)] focus:border-transparent text-sm"
+                className={`w-full p-3 pr-12 border rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-500)] focus:border-transparent text-sm ${
+                  newMessage.length > 1000 
+                    ? 'border-red-500 focus:ring-red-500' 
+                    : 'border-[var(--color-border-primary)]'
+                }`}
                 rows={1}
                 style={{ minHeight: '44px', maxHeight: '120px' }}
+                maxLength={1200}
               />
+              {/* 文字数カウンター */}
+              <div className={`text-xs mt-1 text-right ${
+                newMessage.length > 1000 ? 'text-red-500' : 'text-[var(--color-text-secondary)]'
+              }`}>
+                {newMessage.length}/1000
+              </div>
             </div>
             <button
               onClick={handleSendMessage}
