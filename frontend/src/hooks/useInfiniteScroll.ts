@@ -18,8 +18,10 @@ export function useInfiniteScroll({ initialRooms }: UseInfiniteScrollProps): Use
   const [loading, setLoading] = useState(false);
   const [cursor, setCursor] = useState<string | null>(null);
 
-  // 初期ロード時にカーソルを設定
+  // 初期ルームが更新された時にstateを同期
   useEffect(() => {
+    console.log('🔄 Initial rooms updated:', initialRooms.length);
+    setRooms(initialRooms);
     if (initialRooms.length > 0) {
       const lastRoom = initialRooms[initialRooms.length - 1];
       setCursor(lastRoom.created_at);

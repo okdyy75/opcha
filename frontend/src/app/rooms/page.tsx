@@ -30,17 +30,26 @@ export default function RoomsPage() {
     const fetchRooms = async () => {
       setIsLoading(true);
       try {
+        console.log('🚀 Fetching rooms...');
         const response = await apiClient.getRooms({ limit: 20 });
 
+        console.log('📦 Room fetch response:', response);
+
         if (response.error) {
-          showToast('ルーム一覧の取得に失敗しました', 'error');
+          console.error('❌ Room fetch error:', response.error);
+          showToast(`ルーム一覧の取得に失敗しました: ${response.error.message}`, 'error');
           return;
         }
 
         if (response.data?.rooms) {
+          console.log('✅ Rooms received:', response.data.rooms.length);
           setInitialRooms(response.data.rooms);
+        } else {
+          console.warn('⚠️ No rooms data in response');
+          setInitialRooms([]);
         }
-      } catch {
+      } catch (error) {
+        console.error('❌ Room fetch exception:', error);
         showToast('ネットワークエラーが発生しました', 'error');
       } finally {
         setIsLoading(false);
