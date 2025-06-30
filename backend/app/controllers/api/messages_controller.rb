@@ -1,6 +1,8 @@
 class Api::MessagesController < ApplicationController
   before_action :set_session
   before_action :set_room
+  before_action :validate_content_type, only: [:create]
+  before_action :check_message_rate_limit, only: [:create]
 
   def index
     limit = params[:limit]&.to_i || 50
@@ -20,12 +22,23 @@ class Api::MessagesController < ApplicationController
   end
 
   def create
-    @message = @room.messages.build(message_params)
+    # パラメータのサニタイズ
+    sanitized_params = sanitize_params(message_params.to_h)
+    
+    @message = @room.messages.build(sanitized_params)
     @message.session_id = @session.id
 
     if @message.save
+      log_security_event('message_created', { 
+        room_id: @room.id, 
+        message_length: @message.text_body.length 
+      })
+      
       render json: { message: message_json(@message) }, status: :created
     else
+      log_security_event('message_validation_failed', { 
+        errors: @message.errors.full_messages 
+      })
       render json: { error: { message: @message.errors.full_messages.join(", "), code: "VALIDATION_ERROR" } }, status: :unprocessable_entity
     end
   end
@@ -40,6 +53,10 @@ class Api::MessagesController < ApplicationController
     @room = Room.kept.find_by!(share_token: params[:room_id])
   rescue ActiveRecord::RecordNotFound
     render json: { error: { message: "Room not found", code: "NOT_FOUND" } }, status: :not_found
+  end
+
+  def check_message_rate_limit
+    check_rate_limit(:message_creation)
   end
 
   def message_params

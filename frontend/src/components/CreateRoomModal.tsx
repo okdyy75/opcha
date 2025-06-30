@@ -2,26 +2,47 @@
 
 import { useState } from 'react';
 import Modal from './Modal';
+import { sanitizeText, validateInput, isValidRoomName, ClientRateLimit } from '../utils/security';
 
 interface CreateRoomModalProps {
   isOpen: boolean;
   onClose: () => void;
   onCreateRoom: (roomName: string) => Promise<void>;
+  onShowToast?: (message: string, type: 'success' | 'error' | 'warning') => void;
   isCreating?: boolean;
 }
 
-export default function CreateRoomModal({ isOpen, onClose, onCreateRoom, isCreating = false }: CreateRoomModalProps) {
+export default function CreateRoomModal({ isOpen, onClose, onCreateRoom, onShowToast, isCreating = false }: CreateRoomModalProps) {
   const [roomName, setRoomName] = useState('');
 
   const handleSubmit = async () => {
-    if (roomName.trim() && !isCreating) {
-      try {
-        await onCreateRoom(roomName.trim());
-        setRoomName('');
-      } catch (error) {
-        // エラーはonCreateRoom内でハンドリング済み
-        console.error('Room creation failed:', error);
-      }
+    if (!roomName.trim() || isCreating) return;
+
+    // セキュリティチェック
+    const validation = validateInput(roomName.trim(), 50);
+    if (!validation.isValid) {
+      onShowToast?.(validation.error || 'ルーム名が無効です', 'error');
+      return;
+    }
+
+    if (!isValidRoomName(roomName.trim())) {
+      onShowToast?.('ルーム名に不正な文字が含まれています', 'error');
+      return;
+    }
+
+    // レート制限チェック
+    if (!ClientRateLimit.check('room_create', 5, 300000)) {
+      onShowToast?.('ルーム作成が頻繁すぎます。しばらく待ってから再試行してください', 'error');
+      return;
+    }
+
+    try {
+      const sanitizedName = sanitizeText(roomName.trim());
+      await onCreateRoom(sanitizedName);
+      setRoomName('');
+    } catch (error) {
+      // エラーはonCreateRoom内でハンドリング済み
+      console.error('Room creation failed:', error);
     }
   };
 

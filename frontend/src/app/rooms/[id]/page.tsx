@@ -10,6 +10,7 @@ import NicknameModal from '../../../components/NicknameModal';
 import ShareButton from '../../../components/ShareButton';
 import { apiClient } from '../../../lib/api';
 import { MessageDisplay, messageToDisplay, Room } from '../../../types';
+import { sanitizeText, validateInput, ClientRateLimit } from '../../../utils/security';
 
 export default function ChatRoom() {
   const params = useParams();
@@ -76,11 +77,26 @@ export default function ChatRoom() {
   const handleSendMessage = async () => {
     if (!newMessage.trim() || !sessionId || isSending) return;
 
+    // セキュリティチェック
+    const validation = validateInput(newMessage.trim(), 1000);
+    if (!validation.isValid) {
+      showToast(validation.error || 'メッセージが無効です', 'error');
+      return;
+    }
+
+    // レート制限チェック
+    if (!ClientRateLimit.check('message_send', 30, 60000)) {
+      showToast('メッセージの送信が頻繁すぎます。しばらく待ってから再試行してください', 'error');
+      return;
+    }
+
     setIsSending(true);
     
     try {
+      const sanitizedMessage = sanitizeText(newMessage.trim());
+      
       const response = await apiClient.createMessage(roomId, {
-        text_body: newMessage.trim(),
+        text_body: sanitizedMessage,
       });
 
       if (response.error) {
