@@ -5,35 +5,38 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import CreateRoomModal from '@/components/CreateRoomModal';
 import { useToast } from '@/hooks/useToast';
+import { useInfiniteScroll } from '@/hooks/useInfiniteScroll';
 import { apiClient } from '@/lib/api';
-import { ChatRoom, roomToChatRoom } from '@/types';
+import { roomToChatRoom, Room } from '@/types';
 
 export default function RoomsPage() {
-  const [rooms, setRooms] = useState<ChatRoom[]>([]);
+  const [initialRooms, setInitialRooms] = useState<Room[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
 
   const router = useRouter();
   const { showToast } = useToast();
+  
+  const { rooms, loading: loadingMore, lastElementRef } = useInfiniteScroll({
+    initialRooms
+  });
 
   // ルーム一覧取得
   useEffect(() => {
     const fetchRooms = async () => {
       setIsLoading(true);
       try {
-        const response = await apiClient.getRooms({ limit: 20 });
+        const response = await apiClient.getRooms({ limit: 50 });
 
         if (response.error) {
-          showToast('ルーム一覧の取得に失敗しました', 'error');
+          showToast(`ルーム一覧の取得に失敗しました: ${response.error.message}`, 'error');
           return;
         }
 
-        if (response.data?.rooms) {
-          const chatRooms = response.data.rooms.map(room => roomToChatRoom(room));
-          setRooms(chatRooms);
-        }
-      } catch {
+        setInitialRooms(response.data?.rooms || []);
+      } catch (error) {
+        console.error('ネットワークエラーが発生しました', error);
         showToast('ネットワークエラーが発生しました', 'error');
       } finally {
         setIsLoading(false);
@@ -58,6 +61,8 @@ export default function RoomsPage() {
       if (response.data?.room) {
         showToast(`ルーム「${roomName}」を作成しました`, 'success');
         setIsModalOpen(false);
+        // 新しいルームを先頭に追加
+        setInitialRooms(prev => [response.data!.room, ...prev]);
         router.push(`/rooms/${response.data.room.share_token}`);
       }
     } catch {
@@ -66,6 +71,7 @@ export default function RoomsPage() {
       setIsCreating(false);
     }
   };
+
 
   return (
     <div className="min-h-screen bg-[var(--color-bg-secondary)]">
@@ -115,32 +121,45 @@ export default function RoomsPage() {
         {/* チャットルーム一覧 */}
         {!isLoading && (
           <div className="divide-y divide-[var(--color-border-primary)]">
-            {rooms.map((room) => (
-              <Link
-                key={room.id}
-                href={`/rooms/${room.id}`}
-                className="block p-4 hover:bg-[var(--color-bg-secondary)] transition-colors"
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <h3 className="font-medium text-[var(--color-text-primary)] truncate">
-                        {room.name}
+            {rooms.map((room, index) => {
+              const isLast = index === rooms.length - 1;
+              const chatRoom = roomToChatRoom(room);
+              return (
+                <Link
+                  key={chatRoom.id}
+                  href={`/rooms/${chatRoom.id}`}
+                  className="block p-4 hover:bg-[var(--color-bg-secondary)] transition-colors"
+                  ref={isLast ? lastElementRef : null}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <h3 className="font-medium text-[var(--color-text-primary)] truncate">
+                          {chatRoom.name}
                       </h3>
                       <span className="text-xs text-[var(--color-text-secondary)] flex items-center gap-1">
                         <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 16 16">
                           <path d="M3 14s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1H3zm5-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/>
                         </svg>
-                        {room.participantCount}
+                        {chatRoom.participantCount}
                       </span>
                     </div>
                   </div>
                   <div className="text-xs text-[var(--color-text-secondary)] ml-2">
-                    {room.lastActivity}
+                    {chatRoom.lastActivity}
                   </div>
                 </div>
               </Link>
-            ))}
+              );
+            })}
+            
+            {/* ローディング中のインジケーター */}
+            {loadingMore && (
+              <div className="p-4 text-center">
+                <div className="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-[var(--color-primary-500)]"></div>
+                <p className="text-sm text-[var(--color-text-secondary)] mt-2">読み込み中...</p>
+              </div>
+            )}
           </div>
         )}
 
