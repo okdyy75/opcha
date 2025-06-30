@@ -6,7 +6,6 @@ import { useParams } from 'next/navigation';
 import Toast from '../../../components/Toast';
 import { useToast } from '../../../hooks/useToast';
 import { useSession } from '../../../hooks/useSession';
-import { useMessages } from '../../../hooks/useMessages';
 import NicknameModal from '../../../components/NicknameModal';
 import ShareButton from '../../../components/ShareButton';
 import { apiClient } from '../../../lib/api';
@@ -16,16 +15,11 @@ export default function ChatRoom() {
   const params = useParams();
   const roomId = params.id as string;
   
-  const [initialMessages, setInitialMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [room, setRoom] = useState<Room | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSending, setIsSending] = useState(false);
-  
-  const { messages, loadMoreMessages, hasMore, loading: messagesLoading } = useMessages({
-    roomId,
-    initialMessages
-  });
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { toasts, showToast, removeToast } = useToast();
@@ -64,7 +58,7 @@ export default function ChatRoom() {
           return;
         }
         if (messagesResponse.data?.messages) {
-          setInitialMessages(messagesResponse.data.messages);
+          setMessages(messagesResponse.data.messages);
         }
       } catch {
         showToast('データの取得に失敗しました', 'error');
@@ -76,10 +70,6 @@ export default function ChatRoom() {
     fetchRoomData();
   }, [roomId, sessionId, showToast]);
 
-  const handleLoadMore = async () => {
-    if (messagesLoading || !hasMore) return;
-    await loadMoreMessages();
-  };
 
   const handleSendMessage = async () => {
     if (!newMessage.trim() || !sessionId || isSending) return;
@@ -96,8 +86,9 @@ export default function ChatRoom() {
         return;
       }
 
-      // メッセージはuseMessagesフックで管理されるため手動更新は不要
       if (response.data?.message) {
+        // 新着メッセージを追加（最新50件に制限）
+        setMessages(prev => [...prev, response.data!.message].slice(-50));
         setNewMessage('');
       }
     } catch {
@@ -172,18 +163,6 @@ export default function ChatRoom() {
       {/* メッセージ表示エリア */}
       <div className="flex-1 max-w-md mx-auto w-full bg-white overflow-y-auto">
         <div className="p-4 space-y-4">
-          {/* 過去メッセージ読み込みボタン */}
-          {hasMore && (
-            <div className="text-center">
-              <button
-                onClick={handleLoadMore}
-                disabled={messagesLoading}
-                className="text-sm text-[var(--color-primary-500)] hover:text-[var(--color-primary-600)] disabled:opacity-50"
-              >
-                {messagesLoading ? '読み込み中...' : '過去のメッセージを読み込む'}
-              </button>
-            </div>
-          )}
           
           {messages.map((message) => {
             const displayMessage = messageToDisplay(message);
