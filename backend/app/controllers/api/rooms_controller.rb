@@ -1,6 +1,8 @@
 class Api::RoomsController < ApplicationController
   before_action :set_session
   before_action :set_room, only: [ :show ]
+  before_action :validate_content_type, only: [:create]
+  before_action :check_room_rate_limit, only: [:create]
 
   def index
     limit = params[:limit]&.to_i || 20
@@ -31,13 +33,24 @@ class Api::RoomsController < ApplicationController
   end
 
   def create
-    @room = Room.new(room_params)
+    # パラメータのサニタイズ
+    sanitized_params = sanitize_params(room_params.to_h)
+    
+    @room = Room.new(sanitized_params)
     @room.creator_session_id = @session.id
 
     if @room.save
+      log_security_event('room_created', { 
+        room_id: @room.id, 
+        room_name: @room.name 
+      })
+      
       set_grouped_rooms([ @room.id ])
       render json: { room: room_json(@room, @message_counts, @session_counts, @last_message_ats) }, status: :created
     else
+      log_security_event('room_validation_failed', { 
+        errors: @room.errors.full_messages 
+      })
       render json: { error: { message: @room.errors.full_messages.join(", "), code: "VALIDATION_ERROR" } }, status: :unprocessable_entity
     end
   end
@@ -58,6 +71,10 @@ class Api::RoomsController < ApplicationController
     @message_counts = Message.kept.where(room_id: room_ids).group(:room_id).count
     @session_counts = Message.kept.where(room_id: room_ids).group(:room_id).distinct.count(:session_id)
     @last_message_ats = Message.kept.where(room_id: room_ids).group(:room_id).maximum(:updated_at)
+  end
+
+  def check_room_rate_limit
+    check_rate_limit(:room_creation)
   end
 
   def room_params
