@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Room } from '@/types';
+import { apiClient } from '@/lib/api';
 
 interface UseInfiniteScrollProps {
   initialRooms: Room[];
@@ -16,16 +17,14 @@ export function useInfiniteScroll({ initialRooms }: UseInfiniteScrollProps): Use
   const [rooms, setRooms] = useState<Room[]>(initialRooms);
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(false);
-  const [cursor, setCursor] = useState<string | null>(null);
+  const [currentOffset, setCurrentOffset] = useState(0);
 
   // 初期ルームが更新された時にstateを同期
   useEffect(() => {
     console.log('🔄 Initial rooms updated:', initialRooms.length);
     setRooms(initialRooms);
-    if (initialRooms.length > 0) {
-      const lastRoom = initialRooms[initialRooms.length - 1];
-      setCursor(lastRoom.created_at);
-    }
+    setCurrentOffset(initialRooms.length); // 次回のオフセットを設定
+    setHasMore(initialRooms.length >= 20); // 初期ロード数に基づいてhasMoreを設定
   }, [initialRooms]);
 
   const loadMore = useCallback(async () => {
@@ -33,35 +32,44 @@ export function useInfiniteScroll({ initialRooms }: UseInfiniteScrollProps): Use
 
     setLoading(true);
     try {
-      const params = new URLSearchParams();
-      params.append('limit', '10');
-      if (cursor) {
-        params.append('cursor', cursor);
-      }
-
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/rooms?${params}`, {
-        credentials: 'include'
+      console.log('📄 Loading more rooms, offset:', currentOffset);
+      
+      const response = await apiClient.getRooms({ 
+        limit: 20, 
+        offset: currentOffset 
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        const newRooms = data.rooms || [];
+      console.log('📦 Load more response:', response);
+
+      if (response.error) {
+        console.error('❌ Load more error:', response.error);
+        setHasMore(false);
+        return;
+      }
+
+      if (response.data?.rooms) {
+        const newRooms = response.data.rooms;
+        console.log('✅ New rooms loaded:', newRooms.length);
         
         if (newRooms.length > 0) {
           setRooms(prev => [...prev, ...newRooms]);
-          const lastRoom = newRooms[newRooms.length - 1];
-          setCursor(lastRoom.created_at);
-          setHasMore(data.pagination.has_more);
+          setCurrentOffset(prev => prev + newRooms.length);
+          
+          // 取得した件数が要求した件数より少ない場合は終了
+          setHasMore(newRooms.length >= 20);
         } else {
           setHasMore(false);
         }
+      } else {
+        setHasMore(false);
       }
     } catch (error) {
-      console.error('Failed to load more rooms:', error);
+      console.error('❌ Load more exception:', error);
+      setHasMore(false);
     } finally {
       setLoading(false);
     }
-  }, [cursor, loading, hasMore]);
+  }, [currentOffset, loading, hasMore]);
 
   return {
     rooms,
