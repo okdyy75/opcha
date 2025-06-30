@@ -3,7 +3,7 @@ class Api::RoomsController < ApplicationController
   before_action :set_room, only: [ :show ]
 
   def index
-    limit = params[:limit]&.to_i || 20
+    limit = params[:limit]&.to_i || 50
     offset = params[:offset]&.to_i || 0
 
     @rooms = Room.kept
