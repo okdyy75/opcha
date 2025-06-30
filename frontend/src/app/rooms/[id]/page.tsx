@@ -9,13 +9,13 @@ import { useSession } from '../../../hooks/useSession';
 import NicknameModal from '../../../components/NicknameModal';
 import ShareButton from '../../../components/ShareButton';
 import { apiClient } from '../../../lib/api';
-import { MessageDisplay, messageToDisplay, Room } from '../../../types';
+import { MessageDisplay, messageToDisplay, Room, Message } from '../../../types';
 
 export default function ChatRoom() {
   const params = useParams();
   const roomId = params.id as string;
   
-  const [messages, setMessages] = useState<MessageDisplay[]>([]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [room, setRoom] = useState<Room | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -58,10 +58,7 @@ export default function ChatRoom() {
           return;
         }
         if (messagesResponse.data?.messages) {
-          const displayMessages = messagesResponse.data.messages.map(msg => 
-            messageToDisplay(msg)
-          );
-          setMessages(displayMessages);
+          setMessages(messagesResponse.data.messages);
         }
       } catch {
         showToast('データの取得に失敗しました', 'error');
@@ -72,6 +69,7 @@ export default function ChatRoom() {
 
     fetchRoomData();
   }, [roomId, sessionId, showToast]);
+
 
   const handleSendMessage = async () => {
     if (!newMessage.trim() || !sessionId || isSending) return;
@@ -89,8 +87,8 @@ export default function ChatRoom() {
       }
 
       if (response.data?.message) {
-        const displayMessage = messageToDisplay(response.data.message);
-        setMessages(prev => [...prev, displayMessage]);
+        // 新着メッセージを追加（最新20件に制限）
+        setMessages(prev => [...prev, response.data!.message].slice(-20));
         setNewMessage('');
       }
     } catch {
@@ -165,37 +163,41 @@ export default function ChatRoom() {
       {/* メッセージ表示エリア */}
       <div className="flex-1 max-w-md mx-auto w-full bg-white overflow-y-auto">
         <div className="p-4 space-y-4">
-          {messages.map((message) => (
+          
+          {messages.map((message) => {
+            const displayMessage = messageToDisplay(message);
+            return (
             <div
               key={message.id}
-              className={`flex ${message.isOwn ? 'justify-end' : 'justify-start'}`}
+              className={`flex ${displayMessage.isOwn ? 'justify-end' : 'justify-start'}`}
             >
-              <div className={`max-w-[75%] ${message.isOwn ? 'order-2' : 'order-1'}`}>
-                {!message.isOwn && (
+              <div className={`max-w-[75%] ${displayMessage.isOwn ? 'order-2' : 'order-1'}`}>
+                {!displayMessage.isOwn && (
                   <div className="text-xs text-[var(--color-text-secondary)] mb-1 px-1">
-                    <span className="font-medium">{message.sessionNickname}</span>
-                    <span className="ml-1 opacity-70">#{message.sessionDisplayName}</span>
+                    <span className="font-medium">{displayMessage.sessionNickname}</span>
+                    <span className="ml-1 opacity-70">#{displayMessage.sessionDisplayName}</span>
                   </div>
                 )}
                 <div
                   className={`inline-block p-3 rounded-2xl max-w-full break-words text-sm ${
-                    message.isOwn 
+                    displayMessage.isOwn 
                       ? 'bg-[var(--color-message-self-bg)] text-[var(--color-message-self-text)]'
                       : 'bg-[var(--color-message-other-bg)] text-[var(--color-message-other-text)] border border-[var(--color-border-primary)]'
                   }`}
                 >
                   <p className="text-sm leading-relaxed whitespace-pre-wrap">
-                    {message.text}
+                    {displayMessage.text}
                   </p>
                 </div>
                 <div className={`text-xs text-[var(--color-text-secondary)] mt-1 px-1 ${
-                  message.isOwn ? 'text-right' : 'text-left'
+                  displayMessage.isOwn ? 'text-right' : 'text-left'
                 }`}>
-                  <div>{message.timestamp}</div>
+                  <div>{displayMessage.timestamp}</div>
                 </div>
               </div>
             </div>
-          ))}
+            );
+          })}
         </div>
         <div ref={messagesEndRef} />
       </div>

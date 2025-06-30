@@ -3,19 +3,13 @@ class Api::MessagesController < ApplicationController
   before_action :set_room
 
   def index
-    limit = params[:limit]&.to_i || 50
-    before_id = params[:before]&.to_i
-
-    @messages = @room.messages.kept.includes(:session)
-    @messages = @messages.where("id < ?", before_id) if before_id
-    @messages = @messages.order(created_at: :desc).limit(limit)
+    @messages = @room.messages.kept
+                     .includes(:session)
+                     .order(created_at: :desc)
+                     .limit(20)
 
     render json: {
-      messages: @messages.reverse.map { |message| message_json(message) },
-      pagination: {
-        has_more: @messages.size == limit,
-        next_before: @messages.last&.id
-      }
+      messages: @messages.reverse.map { |message| message_json(message) }
     }
   end
 
