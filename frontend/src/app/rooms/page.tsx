@@ -27,7 +27,7 @@ export default function RoomsPage() {
     const fetchRooms = async () => {
       setIsLoading(true);
       try {
-        const response = await apiClient.getRooms({ limit: 20 });
+        const response = await apiClient.getRooms({ limit: 50 });
 
         if (response.error) {
           showToast(`ルーム一覧の取得に失敗しました: ${response.error.message}`, 'error');

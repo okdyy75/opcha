@@ -25,7 +25,7 @@ export function useInfiniteScroll({ initialRooms }: UseInfiniteScrollProps): Use
   useEffect(() => {
     setRooms(initialRooms);
     setCurrentOffset(initialRooms.length);
-    setHasMore(initialRooms.length >= 20);
+    setHasMore(initialRooms.length >= 50);
   }, [initialRooms]);
 
   const loadMore = useCallback(async () => {
@@ -34,7 +34,7 @@ export function useInfiniteScroll({ initialRooms }: UseInfiniteScrollProps): Use
     setLoading(true);
     try {
       const response = await apiClient.getRooms({ 
-        limit: 20, 
+        limit: 50, 
         offset: currentOffset 
       });
 
@@ -49,7 +49,7 @@ export function useInfiniteScroll({ initialRooms }: UseInfiniteScrollProps): Use
         if (newRooms.length > 0) {
           setRooms(prev => [...prev, ...newRooms]);
           setCurrentOffset(prev => prev + newRooms.length);
-          setHasMore(newRooms.length >= 20);
+          setHasMore(newRooms.length >= 50);
         } else {
           setHasMore(false);
         }
