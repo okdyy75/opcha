@@ -4,23 +4,26 @@ class Api::RoomsController < ApplicationController
 
   def index
     limit = params[:limit]&.to_i || 20
-    offset = params[:offset]&.to_i || 0
+    cursor = params[:cursor]
 
-    @rooms = Room.kept
-                 .includes(:messages)
-                 .limit(limit)
-                 .offset(offset)
-                 .order(created_at: :desc)
-
-    total_count = Room.kept.count
+    @rooms = Room.kept.includes(:messages)
+    
+    # cursor-based pagination
+    if cursor
+      @rooms = @rooms.where("created_at < ?", cursor)
+    end
+    
+    @rooms = @rooms.order(created_at: :desc).limit(limit + 1)
+    
+    has_more = @rooms.size > limit
+    @rooms = @rooms.limit(limit) if has_more
 
     set_grouped_rooms(@rooms.pluck(:id).uniq)
     render json: {
       rooms: @rooms.map { |room| room_json(room, @message_counts, @session_counts, @last_message_ats) },
       pagination: {
-        total: total_count,
-        limit: limit,
-        offset: offset
+        has_more: has_more,
+        next_cursor: has_more ? @rooms.last&.created_at : nil
       }
     }
   end

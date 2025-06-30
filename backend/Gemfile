@@ -49,3 +49,5 @@ end
 gem "activerecord-session_store", "~> 2.2"
 
 gem "discard", "~> 1.4"
+
+gem "pusher", "~> 2.0"
