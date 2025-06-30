@@ -6,20 +6,27 @@ import { useParams } from 'next/navigation';
 import Toast from '../../../components/Toast';
 import { useToast } from '../../../hooks/useToast';
 import { useSession } from '../../../hooks/useSession';
+import { useMessages } from '../../../hooks/useMessages';
 import NicknameModal from '../../../components/NicknameModal';
 import ShareButton from '../../../components/ShareButton';
 import { apiClient } from '../../../lib/api';
-import { MessageDisplay, messageToDisplay, Room } from '../../../types';
+import { MessageDisplay, messageToDisplay, Room, Message } from '../../../types';
 
 export default function ChatRoom() {
   const params = useParams();
   const roomId = params.id as string;
   
-  const [messages, setMessages] = useState<MessageDisplay[]>([]);
+  const [initialMessages, setInitialMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [room, setRoom] = useState<Room | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSending, setIsSending] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState<number | null>(null);
+  
+  const { messages, loadMoreMessages, hasMore, loading: messagesLoading, deleteMessage } = useMessages({
+    roomId,
+    initialMessages
+  });
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { toasts, showToast, removeToast } = useToast();
@@ -58,10 +65,7 @@ export default function ChatRoom() {
           return;
         }
         if (messagesResponse.data?.messages) {
-          const displayMessages = messagesResponse.data.messages.map(msg => 
-            messageToDisplay(msg)
-          );
-          setMessages(displayMessages);
+          setInitialMessages(messagesResponse.data.messages);
         }
       } catch {
         showToast('データの取得に失敗しました', 'error');
@@ -72,6 +76,22 @@ export default function ChatRoom() {
 
     fetchRoomData();
   }, [roomId, sessionId, showToast]);
+
+  const handleDeleteMessage = async (messageId: number) => {
+    try {
+      await deleteMessage(messageId);
+      showToast('メッセージを削除しました', 'success');
+    } catch {
+      showToast('メッセージの削除に失敗しました', 'error');
+    } finally {
+      setShowDeleteConfirm(null);
+    }
+  };
+
+  const handleLoadMore = async () => {
+    if (messagesLoading || !hasMore) return;
+    await loadMoreMessages();
+  };
 
   const handleSendMessage = async () => {
     if (!newMessage.trim() || !sessionId || isSending) return;
@@ -88,9 +108,8 @@ export default function ChatRoom() {
         return;
       }
 
+      // リアルタイムでメッセージが追加されるため、手動でのstate更新は不要
       if (response.data?.message) {
-        const displayMessage = messageToDisplay(response.data.message);
-        setMessages(prev => [...prev, displayMessage]);
         setNewMessage('');
       }
     } catch {
@@ -165,7 +184,22 @@ export default function ChatRoom() {
       {/* メッセージ表示エリア */}
       <div className="flex-1 max-w-md mx-auto w-full bg-white overflow-y-auto">
         <div className="p-4 space-y-4">
-          {messages.map((message) => (
+          {/* 過去メッセージ読み込みボタン */}
+          {hasMore && (
+            <div className="text-center">
+              <button
+                onClick={handleLoadMore}
+                disabled={messagesLoading}
+                className="text-sm text-[var(--color-primary-500)] hover:text-[var(--color-primary-600)] disabled:opacity-50"
+              >
+                {messagesLoading ? '読み込み中...' : '過去のメッセージを読み込む'}
+              </button>
+            </div>
+          )}
+          
+          {messages.map((message) => {
+            const displayMessage = messageToDisplay(message);
+            return (
             <div
               key={message.id}
               className={`flex ${message.isOwn ? 'justify-end' : 'justify-start'}`}
@@ -177,16 +211,29 @@ export default function ChatRoom() {
                     <span className="ml-1 opacity-70">#{message.sessionDisplayName}</span>
                   </div>
                 )}
-                <div
-                  className={`inline-block p-3 rounded-2xl max-w-full break-words text-sm ${
-                    message.isOwn 
-                      ? 'bg-[var(--color-message-self-bg)] text-[var(--color-message-self-text)]'
-                      : 'bg-[var(--color-message-other-bg)] text-[var(--color-message-other-text)] border border-[var(--color-border-primary)]'
-                  }`}
-                >
-                  <p className="text-sm leading-relaxed whitespace-pre-wrap">
-                    {message.text}
-                  </p>
+                <div className="relative group">
+                  <div
+                    className={`inline-block p-3 rounded-2xl max-w-full break-words text-sm ${
+                      message.isOwn 
+                        ? 'bg-[var(--color-message-self-bg)] text-[var(--color-message-self-text)]'
+                        : 'bg-[var(--color-message-other-bg)] text-[var(--color-message-other-text)] border border-[var(--color-border-primary)]'
+                    }`}
+                  >
+                    <p className="text-sm leading-relaxed whitespace-pre-wrap">
+                      {message.text}
+                    </p>
+                  </div>
+                  {message.isOwn && (
+                    <button
+                      onClick={() => setShowDeleteConfirm(message.id)}
+                      className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 hover:bg-red-600 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center"
+                      title="メッセージを削除"
+                    >
+                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  )}
                 </div>
                 <div className={`text-xs text-[var(--color-text-secondary)] mt-1 px-1 ${
                   message.isOwn ? 'text-right' : 'text-left'
@@ -268,6 +315,34 @@ export default function ChatRoom() {
         onClose={() => setIsNicknameModalOpen(false)}
         onUpdate={updateNickname}
       />
+
+      {/* メッセージ削除確認モーダル */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-sm w-full p-6">
+            <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-4">
+              メッセージを削除しますか？
+            </h3>
+            <p className="text-sm text-[var(--color-text-secondary)] mb-6">
+              この操作は取り消すことができません。
+            </p>
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => setShowDeleteConfirm(null)}
+                className="px-4 py-2 text-sm font-medium text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] transition-colors"
+              >
+                キャンセル
+              </button>
+              <button
+                onClick={() => handleDeleteMessage(showDeleteConfirm)}
+                className="px-4 py-2 text-sm font-medium bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors"
+              >
+                削除
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 } 
