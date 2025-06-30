@@ -8,6 +8,7 @@ import { useToast } from '../../../hooks/useToast';
 import { useSession } from '../../../hooks/useSession';
 import NicknameModal from '../../../components/NicknameModal';
 import ShareButton from '../../../components/ShareButton';
+import SessionExpiredModal from '../../../components/SessionExpiredModal';
 import { apiClient } from '../../../lib/api';
 import { MessageDisplay, messageToDisplay, Room } from '../../../types';
 
@@ -23,7 +24,7 @@ export default function ChatRoom() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { toasts, showToast, removeToast } = useToast();
-  const { nickname, sessionId, displayName, isLoading: sessionLoading, updateNickname } = useSession();
+  const { nickname, sessionId, displayName, isLoading: sessionLoading, updateNickname, isExpired, getSessionWarning } = useSession();
   const [isNicknameModalOpen, setIsNicknameModalOpen] = useState(false);
 
   const scrollToBottom = () => {
@@ -72,6 +73,14 @@ export default function ChatRoom() {
 
     fetchRoomData();
   }, [roomId, sessionId, showToast]);
+
+  // セッション期限警告の表示
+  useEffect(() => {
+    const warning = getSessionWarning();
+    if (warning) {
+      showToast(warning, 'warning');
+    }
+  }, [getSessionWarning, showToast]);
 
   const handleSendMessage = async () => {
     if (!newMessage.trim() || !sessionId || isSending) return;
@@ -267,6 +276,12 @@ export default function ChatRoom() {
         currentNickname={nickname}
         onClose={() => setIsNicknameModalOpen(false)}
         onUpdate={updateNickname}
+      />
+
+      {/* セッション期限切れモーダル */}
+      <SessionExpiredModal
+        isExpired={isExpired}
+        onReload={() => window.location.reload()}
       />
     </div>
   );
