@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import CreateRoomModal from '@/components/CreateRoomModal';
@@ -14,42 +14,28 @@ export default function RoomsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
-  const observerRef = useRef<IntersectionObserver | null>(null);
 
   const router = useRouter();
   const { showToast } = useToast();
   
-  const { rooms: infiniteRooms, hasMore, loading: loadingMore, loadMore } = useInfiniteScroll({
+  const { rooms, hasMore, loading: loadingMore, loadMore, lastElementRef } = useInfiniteScroll({
     initialRooms
   });
-  
-  const chatRooms = infiniteRooms.map(room => roomToChatRoom(room));
 
   // ルーム一覧取得
   useEffect(() => {
     const fetchRooms = async () => {
       setIsLoading(true);
       try {
-        console.log('🚀 Fetching rooms...');
         const response = await apiClient.getRooms({ limit: 20 });
 
-        console.log('📦 Room fetch response:', response);
-
         if (response.error) {
-          console.error('❌ Room fetch error:', response.error);
           showToast(`ルーム一覧の取得に失敗しました: ${response.error.message}`, 'error');
           return;
         }
 
-        if (response.data?.rooms) {
-          console.log('✅ Rooms received:', response.data.rooms.length);
-          setInitialRooms(response.data.rooms);
-        } else {
-          console.warn('⚠️ No rooms data in response');
-          setInitialRooms([]);
-        }
+        setInitialRooms(response.data?.rooms || []);
       } catch (error) {
-        console.error('❌ Room fetch exception:', error);
         showToast('ネットワークエラーが発生しました', 'error');
       } finally {
         setIsLoading(false);
@@ -85,17 +71,6 @@ export default function RoomsPage() {
     }
   };
 
-  // Intersection Observer for infinite scroll
-  const lastRoomElementRef = useCallback((node: HTMLElement | null) => {
-    if (loadingMore) return;
-    if (observerRef.current) observerRef.current.disconnect();
-    observerRef.current = new IntersectionObserver(entries => {
-      if (entries[0].isIntersecting && hasMore) {
-        loadMore();
-      }
-    });
-    if (node) observerRef.current.observe(node);
-  }, [loadingMore, hasMore, loadMore]);
 
   return (
     <div className="min-h-screen bg-[var(--color-bg-secondary)]">
@@ -145,31 +120,32 @@ export default function RoomsPage() {
         {/* チャットルーム一覧 */}
         {!isLoading && (
           <div className="divide-y divide-[var(--color-border-primary)]">
-            {chatRooms.map((room, index) => {
-              const isLast = index === chatRooms.length - 1;
+            {rooms.map((room, index) => {
+              const isLast = index === rooms.length - 1;
+              const chatRoom = roomToChatRoom(room);
               return (
                 <Link
-                  key={room.id}
-                  href={`/rooms/${room.id}`}
+                  key={chatRoom.id}
+                  href={`/rooms/${chatRoom.id}`}
                   className="block p-4 hover:bg-[var(--color-bg-secondary)] transition-colors"
-                  ref={isLast ? lastRoomElementRef : null}
+                  ref={isLast ? lastElementRef : null}
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
                         <h3 className="font-medium text-[var(--color-text-primary)] truncate">
-                          {room.name}
+                          {chatRoom.name}
                       </h3>
                       <span className="text-xs text-[var(--color-text-secondary)] flex items-center gap-1">
                         <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 16 16">
                           <path d="M3 14s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1H3zm5-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/>
                         </svg>
-                        {room.participantCount}
+                        {chatRoom.participantCount}
                       </span>
                     </div>
                   </div>
                   <div className="text-xs text-[var(--color-text-secondary)] ml-2">
-                    {room.lastActivity}
+                    {chatRoom.lastActivity}
                   </div>
                 </div>
               </Link>
@@ -187,7 +163,7 @@ export default function RoomsPage() {
         )}
 
         {/* 空の状態 */}
-        {!isLoading && chatRooms.length === 0 && (
+        {!isLoading && rooms.length === 0 && (
           <div className="p-8 text-center">
             <div className="text-4xl mb-4">💬</div>
             <p className="text-[var(--color-text-secondary)] mb-4">
